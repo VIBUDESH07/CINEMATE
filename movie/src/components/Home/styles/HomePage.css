@@ -1,5 +1,6 @@
 .homepage {
   font-family: 'Arial', sans-serif;
+  background-image:-moz-repeating-linear-gradient(black,rgb(206, 205, 205));
 }
 
 .header {
@@ -19,6 +20,7 @@
 }
 
 .movies-list {
+  background: linear-gradient(to right,black,white);
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 20px;
