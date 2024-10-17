@@ -1,55 +1,55 @@
-/* frontend/src/pages/HomePage.css */
-
 .homepage {
-    padding: 20px;
-    text-align: center;
+  font-family: 'Arial', sans-serif;
+}
+
+.header {
+  text-align: center;
+  background-image: linear-gradient(black,rgb(197, 190, 190)); /* Use Netflix-like background */
+  background-size: cover;
+  padding: 20px;
+  color: white;
+}
+
+.header input {
+  padding: 10px;
+  width: 60%;
+  border-radius: 5px;
+  border: none;
+  font-size: 1.1em;
+}
+
+.movies-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+
+.movie-card {
+  background-color: #333;
+  padding: 20px;
+  border-radius: 10px;
+  color: white;
+  text-align: center;
+}
+
+.movie-poster {
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.movie-details h2 {
+  margin: 10px 0;
+}
+
+.movie-details p {
+  margin: 5px 0;
+}
+
+@media (max-width: 600px) {
+  .header input {
+    width: 90%;
   }
-  
-  header {
-    margin-bottom: 20px;
-  }
-  
-  header h1 {
-    font-size: 2.5rem;
-    margin-bottom: 10px;
-  }
-  
-  header input {
-    padding: 10px;
-    width: 300px;
-    font-size: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-  }
-  
-  .movies-list {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  
-  .movie-card {
-    background-color: #f8f9fa;
-    margin: 10px;
-    padding: 10px;
-    border-radius: 8px;
-    width: 200px;
-    text-align: center;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  }
-  
-  .movie-card img {
-    width: 100%;
-    height: auto;
-    border-radius: 8px;
-  }
-  
-  .movie-card h2 {
-    font-size: 1.25rem;
-    margin: 10px 0;
-  }
-  
-  .movie-card p {
-    color: #555;
-  }
-  
+}
