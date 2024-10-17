@@ -1,31 +1,45 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
+const mongoose = require('mongoose');
 
 const app = express();
-
-// Middleware
 app.use(cors());
-app.use(express.json());
 
 // MongoDB connection
 mongoose.connect('mongodb+srv://vibudesh:040705@cluster0.bojv6ut.mongodb.net/Movie', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
+  useNewUrlParser: true,
+  useUnifiedTopology: true
 })
-    .then(() => console.log('MongoDB connected to Movie database'))
-    .catch((err) => console.error('MongoDB connection error:', err));
+  .then(() => console.log('MongoDB connected'))
+  .catch((err) => console.log('MongoDB connection error:', err));
 
-// Route to fetch all movies from movie_list collection
+// Use the existing 'movie_list' collection
+const Movie = mongoose.connection.collection('movie_details');
+
+// Route to fetch movies with search functionality
 app.get('/api/movies/mongodb', async (req, res) => {
-    try {
-        // Access movie_list collection directly
-        const movieListCollection = mongoose.connection.db.collection('movie_details');
-        const movies = await movieListCollection.find({}).toArray(); // Fetch all movies
-        res.json(movies);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+  const { search } = req.query;
+  let query = {};
+
+  // If search term is provided, filter by title, hero, heroine, or genre
+  if (search) {
+    const regex = new RegExp(search, 'i'); // case-insensitive regex
+    query = {
+      $or: [
+        { title: regex },
+        { hero: regex },
+        { heroine: regex },
+        { genres: regex }
+      ]
+    };
+  }
+
+  try {
+    const movies = await Movie.find(query).toArray();
+    res.json(movies);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 // Start the server
