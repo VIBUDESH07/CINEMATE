@@ -1,0 +1,109 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+.bod {
+  background-image: linear-gradient(to right, black, rgb(144, 144, 144));
+}
+
+.movie-details-page {
+  margin-top: 3rem;
+  padding: 20px;
+  max-width: 800px;
+  margin: auto;
+  background-color: black;
+  color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  display: grid; /* Use grid layout */
+  grid-template-columns: 250px 1fr; /* Set grid columns for image and details */
+  gap: 20px; /* Space between columns */
+}
+
+.movie-content {
+  display: contents; /* Use grid properties for child elements */
+}
+
+.movie-details-poster {
+  width: 100%; /* Full width of the grid cell */
+  height: auto;
+  border-radius: 8px;
+}
+
+.movie-details-info {
+  display: flex;
+  flex-direction: column; /* Stack details vertically */
+}
+
+.trailer-section {
+  text-align: center; /* Center the trailer section */
+  margin-top: 20px; /* Space above the trailer section */
+  grid-column: span 2; /* Make trailer section span across both columns */
+}
+
+.trailer-iframe {
+  width: 100%; /* Responsive width */
+  max-width: 600px; /* Max width for the trailer */
+  height: 350px; /* Maintain aspect ratio */
+}
+
+.star-rating {
+  color: #FFD700; /* Gold color for filled stars */
+  font-size: 24px; /* Size of the stars */
+}
+
+/* Specific styles for different attributes */
+.movie-details-info .year {
+  color: #ffcc00; /* Gold color for year */
+  font-weight: bold; /* Bold for emphasis */
+}
+
+.movie-details-info .description {
+  color: #fff; /* White color for description */
+  background-color: rgba(0, 251, 255, 0.2); /* Light red background */
+  padding: 10px; /* Padding for spacing */
+  border-left: 5px solid rgb(0, 204, 255); /* Left border for style */
+}
+
+.movie-details-info .hero,
+.movie-details-info .heroine {
+  color: #1e90ff; /* Dodger blue for hero/heroine */
+  font-weight: bold; /* Bold for emphasis */
+}
+
+.movie-details-info .rating {
+  color: #32cd32; /* Lime green for TMDB rating */
+  font-weight: bold; /* Bold for emphasis */
+  border: 2px solid #32cd32; /* Green border */
+  padding: 5px; /* Padding for spacing */
+  border-radius: 4px; /* Rounded corners */
+}
+
+/* Responsive styling */
+@media (max-width: 600px) {
+  .movie-details-page {
+    padding: 10px;
+    grid-template-columns: 1fr; /* Single column layout on small screens */
+  }
+
+  .navbar-brand {
+    font-size: 20px;
+  }
+
+  .movie-details-poster {
+    width: 200px; /* Smaller size for mobile */
+  }
+
+  .trailer-iframe {
+    max-width: 100%; /* Responsive width */
+  }
+
+  .movie-details-info {
+    margin-left: 10px; /* Adjust for smaller screens */
+  }
+
+  .movie-details-info p {
+    margin: 8px 0; /* Reduce margin for smaller screens */
+  }
+}
