@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import './styles/Navbar.css'; // Assume you have styles in this file
+import './styles/Navbar.css';
 
 const Navbar = ({ searchTerm, setSearchTerm }) => {
   const handleSearch = (e) => {
@@ -8,7 +8,7 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
   };
 
   return (
-    <nav className="navbar">
+    <nav className="navbar"> {/* Make sure this matches the CSS class */}
       <div className="logo">
         <Link to="/">🎬 MovieFlix</Link>
       </div>
@@ -25,12 +25,13 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
           <Link to="/">Home</Link>
         </li>
         <li>
-          <Link to="/movies">All Movies</Link>
+          <Link to="/filter">Filter</Link>
         </li>
         <li>
           <Link to="/about">About</Link>
         </li>
       </ul>
+      <Link to="/login" className="login-button">Login</Link> {/* Login button added */}
     </nav>
   );
 };
