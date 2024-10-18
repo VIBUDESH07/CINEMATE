@@ -15,6 +15,23 @@ mongoose.connect('mongodb+srv://vibudesh:040705@cluster0.bojv6ut.mongodb.net/Mov
 
 // Use the existing 'movie_list' collection
 const Movie = mongoose.connection.collection('movie_details');
+// Route to fetch movie details by ID
+app.get('/api/movies/mongodb/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Find the movie by ID in the MongoDB collection
+    const movie = await Movie.find({ id: parseInt(id) }).toArray(); // Ensure ID is an integer
+
+    if (movie.length === 0) {
+      return res.status(404).json({ message: 'Movie not found' });
+    }
+
+    res.json(movie[0]); // Return the first matching movie
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 
 // Route to fetch movies with search functionality
 app.get('/api/movies/mongodb', async (req, res) => {
