@@ -35,6 +35,7 @@
 .nav-links {
   display: flex;
   list-style-type: none;
+  margin-right: 2rem;
 }
 
 .nav-links li {
