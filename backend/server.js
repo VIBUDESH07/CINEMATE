@@ -10,110 +10,80 @@ app.use(cors());
 // MongoDB connection
 mongoose.connect('mongodb+srv://vibudesh:040705@cluster0.bojv6ut.mongodb.net/Movie', {
   useNewUrlParser: true,
-  useUnifiedTopology: true
+  useUnifiedTopology: true,
 })
   .then(() => console.log('MongoDB connected'))
   .catch((err) => console.log('MongoDB connection error:', err));
 
-// Use the existing 'movie_list' collection
+// Use the existing 'movie_details' collection
 const Movie = mongoose.connection.collection('movie_details');
 
-// Route to fetch movie details by ID
-app.get('/api/movies/mongodb/:id', async (req, res) => {
-  const { id } = req.params;
-
+// Function to fetch details of newly released movies from TMDb
+async function fetchAndStoreMovies() {
   try {
-    // Find the movie by ID in the MongoDB collection
-    const movie = await Movie.find({ id: parseInt(id) }).toArray(); // Ensure ID is an integer
-
-    if (movie.length === 0) {
-      return res.status(404).json({ message: 'Movie not found' });
-    }
-
-    res.json(movie[0]); // Return the first matching movie
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// Route to fetch movies with search functionality
-app.get('/api/movies/mongodb', async (req, res) => {
-  const { search } = req.query;
-  let query = {};
-
-  // If search term is provided, filter by title, hero, heroine, or genre
-  if (search) {
-    const regex = new RegExp(search, 'i'); // case-insensitive regex
-    query = {
-      $or: [
-        { title: regex },
-        { hero: regex },
-        { heroine: regex },
-        { genres: regex }
-      ]
-    };
-  }
-
-  try {
-    const movies = await Movie.find(query).toArray();
-    res.json(movies);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// Fetch movies from TMDb API and insert into MongoDB
-const fetchAndInsertMovies = async () => {
-  try {
-    // Fetch the movies that were released today from TMDb
-    const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+    // Fetch movies released today
+    const today = new Date().toISOString().split('T')[0]; // Format date as 'YYYY-MM-DD'
     const tmdbResponse = await axios.get(`https://api.themoviedb.org/3/discover/movie`, {
       params: {
         api_key: '9d45d63b1b0d8f428fdff75018aa813f',
-        primary_release_date: today,
+        primary_release_date: today, // Fetch today's releases
+        language: 'ta' // Fetch Tamil movies
       }
     });
 
     const movies = tmdbResponse.data.results;
 
-    const bulkOps = [];
-
-    // Prepare bulk operations to insert each movie into MongoDB
     for (const movie of movies) {
-      bulkOps.push({
-        updateOne: {
-          filter: { id: movie.id }, // Ensure the movie is not duplicated
-          update: {
-            $setOnInsert: {
-              title: movie.title,
-              release_date: movie.release_date,
-              genres: movie.genre_ids, // This will store the genre IDs
-              overview: movie.overview,
-              image: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
-              id: movie.id,
-            }
-          },
-          upsert: true
-        }
+      const movieId = movie.id;
+      // Fetch additional movie details
+      const detailsResponse = await axios.get(`https://api.themoviedb.org/3/movie/${movieId}`, {
+        params: { api_key: '9d45d63b1b0d8f428fdff75018aa813f', append_to_response: 'videos,credits' }
       });
-    }
 
-    // Execute the bulk insert
-    if (bulkOps.length > 0) {
-      await Movie.bulkWrite(bulkOps);
-      console.log('Movies inserted into MongoDB successfully');
+      const movieDetails = detailsResponse.data;
+
+      // Prepare movie data for MongoDB
+      const movieData = {
+        title: movieDetails.title,
+        year: new Date(movieDetails.release_date).getFullYear(),
+        releaseDate: movieDetails.release_date,
+        image: `https://image.tmdb.org/t/p/w500${movieDetails.poster_path}`,
+        id: movieDetails.id,
+        genres: movieDetails.genres.map((genre) => genre.name),
+        hero: movieDetails.credits.cast.find((person) => person.known_for_department === 'Acting')?.name || 'Unknown',
+        heroine: movieDetails.credits.cast.find((person) => person.gender === 1)?.name || 'Unknown',
+        description: movieDetails.overview,
+        trailer: movieDetails.videos.results.find((video) => video.type === 'Trailer')?.key ? 
+          `https://www.youtube.com/watch?v=${movieDetails.videos.results.find((video) => video.type === 'Trailer').key}` : null,
+        imdbRating: null, // To be fetched separately if needed
+        tmdbRating: movieDetails.vote_average,
+        cast: movieDetails.credits.cast.slice(0, 10).map((actor) => actor.name), // Top 10 cast members
+        duration: movieDetails.runtime ? `${movieDetails.runtime} min` : 'Duration not found',
+        translatedTitle: movieDetails.original_title,
+        screenshots: [] // Can be added if needed
+      };
+
+      // Upsert (insert or update) movie in MongoDB
+      await Movie.updateOne(
+        { id: movieDetails.id }, // Use TMDb movie ID for matching
+        { $set: movieData },
+        { upsert: true }
+      );
+
+      console.log(`Stored movie: ${movieDetails.title}`);
     }
   } catch (error) {
-    console.error('Error fetching or inserting movies:', error.message);
+    console.error('Error fetching or storing movies:', error.message);
   }
-};
+}
 
-// Schedule the job to run at 8 AM every day
-cron.schedule('0 8 * * *', async () => {
-  console.log('Running scheduled job to fetch and insert movies...');
-  await fetchAndInsertMovies();
+// Schedule the task to run daily at 8 AM
+cron.schedule('0 8 * * *', fetchAndStoreMovies, {
+  scheduled: true,
+  timezone: 'Asia/Kolkata' // Set the appropriate timezone
 });
 
 // Start the server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
