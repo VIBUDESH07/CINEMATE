@@ -62,15 +62,17 @@ app.get('/api/movies/mongodb', async (req, res) => {
   }
 });
 
-// Fetch movies from TMDb API and insert into MongoDB
+// Fetch Tamil movies from TMDb API and insert into MongoDB
 const fetchAndInsertMovies = async () => {
   try {
-    // Fetch the movies that were released today from TMDb
+    // Fetch the movies that were released today from TMDb (Tamil movies only)
     const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
     const tmdbResponse = await axios.get(`https://api.themoviedb.org/3/discover/movie`, {
       params: {
         api_key: '9d45d63b1b0d8f428fdff75018aa813f',
         primary_release_date: today,
+        with_original_language: 'ta', // Fetch only Tamil movies
+        region: 'IN' // Set region to India
       }
     });
 
@@ -101,7 +103,7 @@ const fetchAndInsertMovies = async () => {
     // Execute the bulk insert
     if (bulkOps.length > 0) {
       await Movie.bulkWrite(bulkOps);
-      console.log('Movies inserted into MongoDB successfully');
+      console.log('Tamil movies inserted into MongoDB successfully');
     }
   } catch (error) {
     console.error('Error fetching or inserting movies:', error.message);
@@ -110,7 +112,7 @@ const fetchAndInsertMovies = async () => {
 
 // Schedule the job to run at 8 AM every day
 cron.schedule('0 8 * * *', async () => {
-  console.log('Running scheduled job to fetch and insert movies...');
+  console.log('Running scheduled job to fetch and insert Tamil movies...');
   await fetchAndInsertMovies();
 });
 
