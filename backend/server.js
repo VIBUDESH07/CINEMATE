@@ -16,9 +16,7 @@ mongoose.connect('mongodb+srv://vibudesh:040705@cluster0.bojv6ut.mongodb.net/Mov
   .catch((err) => console.log('MongoDB connection error:', err));
 
 // Use the existing 'movie_details' collection
-const Movie = mongoose.connection.collection('movie_details');
-
-// Route to fetch movie details by ID
+const Movie = mongoose.connection.collection('movie');
 app.get('/api/movies/mongodb/:id', async (req, res) => {
   const { id } = req.params;
 
@@ -62,6 +60,62 @@ app.get('/api/movies/mongodb', async (req, res) => {
   }
 });
 
+// Fetch detailed Tamil movies from TMDb API and insert into MongoDB
+const fetchMovieDetails = async (movieId) => {
+  try {
+    const movieDetailResponse = await axios.get(`https://api.themoviedb.org/3/movie/${movieId}`, {
+      params: {
+        api_key: '9d45d63b1b0d8f428fdff75018aa813f',
+        append_to_response: 'credits,videos,external_ids'
+      }
+    });
+
+    const movieData = movieDetailResponse.data;
+
+    // Extracting trailer URL
+    const trailer = movieData.videos.results.find(video => video.type === 'Trailer' && video.site === 'YouTube')?.key;
+    const trailerUrl = trailer ? `https://www.youtube.com/watch?v=${trailer}` : null;
+
+    // Extracting cast information
+    const cast = movieData.credits.cast.slice(0, 10).map(actor => actor.name); // Limit to top 10 actors
+
+    return {
+      title: movieData.title,
+      releaseDate: movieData.release_date,
+      genres: movieData.genres.map(genre => genre.name),
+      description: movieData.overview,
+      image: `https://image.tmdb.org/t/p/w500${movieData.poster_path}`,
+      hero: cast.length > 0 ? cast[0] : "Unknown",
+      heroine: cast.length > 1 ? cast[1] : "Unknown",
+      cast: cast,
+      trailer: trailerUrl,
+      imdbRating: movieData.external_ids.imdb_id ? await fetchIMDBRating(movieData.external_ids.imdb_id) : null,
+      tmdbRating: movieData.vote_average,
+      id: movieData.id,
+      duration: `${movieData.runtime} mins`,
+    };
+  } catch (error) {
+    console.error('Error fetching movie details:', error.message);
+    return null;
+  }
+};
+
+// Fetch IMDb rating from OMDb API (if needed)
+const fetchIMDBRating = async (imdbId) => {
+  try {
+    const omdbResponse = await axios.get(`https://www.omdbapi.com/`, {
+      params: {
+        apikey: ' 22c192c5', // Replace with your OMDb API key
+        i: imdbId
+      }
+    });
+    return omdbResponse.data.imdbRating || null;
+  } catch (error) {
+    console.error('Error fetching IMDb rating:', error.message);
+    return null;
+  }
+};
+
 // Fetch Tamil movies from TMDb API and insert into MongoDB
 const fetchAndInsertMovies = async () => {
   try {
@@ -80,30 +134,27 @@ const fetchAndInsertMovies = async () => {
 
     const bulkOps = [];
 
-    // Prepare bulk operations to insert each movie into MongoDB
+    // Fetch detailed movie info for each movie and prepare bulk operations to insert into MongoDB
     for (const movie of movies) {
-      bulkOps.push({
-        updateOne: {
-          filter: { id: movie.id }, // Ensure the movie is not duplicated
-          update: {
-            $setOnInsert: {
-              title: movie.title,
-              release_date: movie.release_date,
-              genres: movie.genre_ids, // This will store the genre IDs
-              overview: movie.overview,
-              image: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
-              id: movie.id,
-            }
-          },
-          upsert: true
-        }
-      });
+      const detailedMovie = await fetchMovieDetails(movie.id);
+
+      if (detailedMovie) {
+        bulkOps.push({
+          updateOne: {
+            filter: { id: movie.id }, // Ensure the movie is not duplicated
+            update: {
+              $setOnInsert: detailedMovie
+            },
+            upsert: true
+          }
+        });
+      }
     }
 
     // Execute the bulk insert
     if (bulkOps.length > 0) {
       await Movie.bulkWrite(bulkOps);
-      console.log('Tamil movies inserted into MongoDB successfully');
+      console.log('Tamil movies with details inserted into MongoDB successfully');
     }
   } catch (error) {
     console.error('Error fetching or inserting movies:', error.message);
@@ -112,7 +163,7 @@ const fetchAndInsertMovies = async () => {
 
 // Schedule the job to run at 8 AM every day
 cron.schedule('0 8 * * *', async () => {
-  console.log('Running scheduled job to fetch and insert Tamil movies...');
+  console.log('Running scheduled job to fetch and insert Tamil movies with details...');
   await fetchAndInsertMovies();
 });
 
