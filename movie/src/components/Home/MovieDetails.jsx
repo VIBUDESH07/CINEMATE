@@ -28,7 +28,7 @@ const MovieDetails = () => {
   useEffect(() => {
     const fetchMovieDetails = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/movies/mongodb/${id}`);
+        const response = await axios.get(`http://localhost:5000/api/movies/${id}`);
         setMovie(response.data);
       } catch (error) {
         console.error('Error fetching movie details:', error);
@@ -68,6 +68,8 @@ const MovieDetails = () => {
               <strong>IMDB Rating:</strong> {movie.tmdbRating || 'N/A'}
               <StarRating rating={movie.tmdbRating || 0} />
             </p>
+            <p className="duration"><strong>Duration:</strong> {movie.duration || 'N/A'}</p>
+            <p className="where-to-watch"><strong>Where to Watch:</strong> {movie.whereToWatch || 'N/A'}</p>
           </div>
         </div>
 
