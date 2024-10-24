@@ -4,6 +4,7 @@ import { auth } from '../Firebase'; // Import the Firebase auth instance
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import loginImage from './images/unnamed.jpg'; // Replace with your image path
+import LanguageAndArtists from '../Main/user_details/Artists'; // Import the LanguageAndArtists component
 
 const LoginSignup = () => {
   const [email, setEmail] = useState('');
@@ -12,6 +13,7 @@ const LoginSignup = () => {
   const [error, setError] = useState('');
   const [isLogin, setIsLogin] = useState(true);
   const [popupMessage, setPopupMessage] = useState(''); // State for popup message
+  const [showLanguage, setShowLanguage] = useState(false); // State to control language selection visibility
   const navigate = useNavigate(); // Initialize useNavigate
 
   const validatePassword = (password) => {
@@ -25,28 +27,31 @@ const LoginSignup = () => {
       setError('Please fill in all required fields');
       return;
     }
-
+  
     if (!isLogin && password !== confirmPassword) {
       setError('Passwords do not match');
       return;
     }
-
+  
     if (!validatePassword(password)) {
       setError('Password must be at least 8 characters long and contain at least one special character');
       return;
     }
-
+  
     try {
       if (isLogin) {
         // Login
         await signInWithEmailAndPassword(auth, email, password);
+        localStorage.setItem('isLoggedIn', 'true'); // Set login status in local storage
+        localStorage.setItem('username', email);
+        console.log(email) // Store email or username in local storage
         setPopupMessage('Login successful!'); // Set popup message
         navigate('/'); // Redirect to the home page
       } else {
         // Signup
         await createUserWithEmailAndPassword(auth, email, password);
         setPopupMessage('Signup successful!'); // Set popup message
-        navigate('/login'); // Redirect to the login page
+        setShowLanguage(true); // Show language selection component
       }
       // Hide the popup after 3 seconds
       setTimeout(() => setPopupMessage(''), 3000);
@@ -55,6 +60,10 @@ const LoginSignup = () => {
       console.error('Error processing request', err);
     }
   };
+  
+  if (showLanguage) {
+    return <LanguageAndArtists email={email} password={password} />; // Pass email and password to LanguageAndArtists component
+  }
 
   return (
     <div style={styles.container}>
@@ -125,20 +134,19 @@ const LoginSignup = () => {
     </div>
   );
 };
-
 const styles = {
   container: {
     display: 'flex',
     height: '100vh',
     flexDirection: 'row',
-    backgroundColor: '#f0f4f8', // Light background for contrast
+    backgroundColor: 'black', // Light background for contrast
   },
   imageContainer: {
     flex: 1,
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#d9e3eb', // Slightly darker for depth
+    backgroundColor: 'black', // Slightly darker for depth
     boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)', // Shadow for depth
   },
   image: {
@@ -154,12 +162,13 @@ const styles = {
     justifyContent: 'center',
     alignItems: 'center',
     padding: '40px',
-    backgroundColor: '#ffffff',
+    background: 'linear-gradient(to right black , white)',
     boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)', // Deeper shadow for contrast
     borderRadius: '10px',
+    color: 'red',
   },
   form: {
-    width: '320px',
+    width: '370px',
     padding: '20px',
     borderRadius: '15px',
     background: 'linear-gradient(145deg, #ffffff, #f0f0f0)', // Soft gradient for depth
@@ -169,7 +178,7 @@ const styles = {
     marginBottom: '20px',
   },
   input: {
-    width: '100%',
+    width: '90%',
     padding: '12px',
     border: '2px solid #007bff', // Thicker border
     borderRadius: '5px',
