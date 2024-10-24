@@ -1,0 +1,105 @@
+.artis-body {
+    background: linear-gradient(to bottom, #000000, #ffffff); /* Gradient from black to white */
+    margin: 0; /* Remove default margin */
+    display: flex;
+    flex-direction: column; /* Allow vertical stacking of content */
+    justify-content: flex-start; /* Align items at the start of the viewport */
+    align-items: center; /* Center items horizontally */
+    height: 100vh; /* Full viewport height */
+    padding: 20px; /* Add some padding to the body */
+    box-sizing: border-box; /* Include padding in height */
+}
+
+.artis-signup-container {
+    max-width: 600px;
+    width: 100%; /* Make it responsive */
+    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.8); /* Slightly transparent black for contrast */
+    color: #cf0b0b; /* White text */
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    text-align: center; /* Center align text within the container */
+    margin-top: 20px; /* Space between the top and the container */
+}
+
+.artis-language-buttons,
+.artis-artist-grid,
+.artis-genre-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around; /* Distribute buttons evenly */
+}
+
+.artis-language-button,
+.artis-artist-card {
+    background-color: #222; /* Darker background for buttons/cards */
+    border: 1px solid #444; /* Border color */
+    border-radius: 10px;
+    padding: 10px;
+    margin: 10px;
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+    .artis-genre-button {
+        background-image: linear-gradient(rgb(255, 0, 212),pink); /* Darker background for buttons/cards */
+        border: 1px solid #444; /* Border color */
+        border-radius: 10px;
+        padding: 10px;
+        margin: 10px;
+        cursor: pointer;
+        color: #cf0b0b;
+        font-weight: bolder;
+        transition: transform 0.2s, background-color 0.2s;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+
+.artis-language-button.selected,
+.artis-artist-card.selected {
+    background-color: #590101; /* Highlight color when selected */
+    transform: scale(1.05); /* Slightly larger */
+}
+
+.artis-artist-icon {
+    width: 80px; /* Size of artist images */
+    height: 80px; /* Make them square */
+    border-radius: 10px; /* Rounded corners */
+    object-fit: cover; /* Cover image nicely */
+}
+
+.artis-icon {
+    width: 50px; /* Language icon size */
+    height: 50px;
+}
+
+.artis-error {
+    color: red;
+}
+
+.artis-success {
+    color: green;
+}
+
+.artis-next-button,
+.artis-submit-button,
+.artis-back-button {
+    background-color: #007bff; /* Button color */
+    color: #fff; /* Text color */
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    margin-top: 20px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.artis-next-button:hover,
+.artis-submit-button:hover,
+.artis-back-button:hover {
+    background-color: #0056b3; /* Darker shade on hover */
+}

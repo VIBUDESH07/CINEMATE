@@ -1,0 +1,102 @@
+/* SignupForm.css */
+
+.signup-container {
+  /* Other styling */
+}
+
+.error {
+  color: red;
+  /* Additional error styling */
+}
+
+.success {
+  color: green;
+  /* Additional success styling */
+}
+
+.language-buttons {
+  display: flex;
+  flex-direction: column; /* Stack languages vertically */
+  gap: 10px; /* Space between buttons */
+}
+
+.language-button {
+  display: flex;
+  align-items: center; /* Center icon and text vertically */
+  padding: 10px; /* Padding for better click area */
+  background-color: #333; /* Example background */
+  color: white; /* Text color */
+  border: none; /* Remove border */
+  border-radius: 5px; /* Rounded corners */
+  cursor: pointer; /* Pointer on hover */
+}
+
+.language-button.selected {
+  background-color: #555; /* Different color for selected */
+}
+
+.icon {
+  width: 20px; /* Adjust width for the icon */
+  height: 20px; /* Adjust height for the icon */
+  margin-right: 10px; /* Space between icon and text */
+}
+
+.artist-grid {
+  display: grid; /* Use grid for layout */
+  grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); /* Adjust columns */
+  gap: 10px; /* Space between artist cards */
+  margin-top: 20px; /* Space above the artist grid */
+}
+
+.artist-card {
+  display: flex;
+  flex-direction: column; /* Stack image and text vertically */
+  align-items: center; /* Center items horizontally */
+  cursor: pointer; /* Pointer on hover */
+}
+
+.artist-icon {
+  width: 50px; /* Set width for passport size */
+  height: 50px; /* Set height for passport size */
+  border-radius: 50%; /* Make it circular */
+  object-fit: cover; /* Ensure the image covers the area */
+  border: 2px solid #ccc; /* Optional border for aesthetics */
+}
+
+.artist-card p {
+  margin: 5px 0; /* Space around artist name */
+  font-size: 12px; /* Smaller font size for artist name */
+}
+
+.genre-buttons {
+  display: flex; /* Align buttons in a row */
+  flex-wrap: wrap; /* Allow wrapping */
+  gap: 10px; /* Space between buttons */
+}
+
+.genre-button {
+  padding: 10px; /* Padding for better click area */
+  background-color: #333; /* Background color */
+  color: white; /* Text color */
+  border: none; /* Remove border */
+  border-radius: 5px; /* Rounded corners */
+  cursor: pointer; /* Pointer on hover */
+}
+
+.genre-button.selected {
+  background-color: #555; /* Different color for selected */
+}
+
+.next-button, .submit-button, .back-button {
+  padding: 10px; /* Padding for buttons */
+  background-color: #444; /* Background color for buttons */
+  color: white; /* Text color */
+  border: none; /* Remove border */
+  border-radius: 5px; /* Rounded corners */
+  cursor: pointer; /* Pointer on hover */
+}
+
+.next-button:disabled, .submit-button:disabled {
+  background-color: #888; /* Disabled state color */
+  cursor: not-allowed; /* Not allowed cursor */
+}
