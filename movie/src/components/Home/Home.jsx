@@ -8,19 +8,50 @@ const HomePage = () => {
   const [movies, setMovies] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate(); // Initialize useNavigate
+  const [userGenres, setUserGenres] = useState([]);
+  const [userHero, setUserHero] = useState('');
 
-  // Fetch movies from backend API
+  useEffect(() => {
+    const isLoggedIn = localStorage.getItem('isLoggedIn'); // Check if user is logged in
+    const email = localStorage.getItem('username'); // Get the user's email from local storage
+    
+    if (!isLoggedIn) {
+      navigate('/login'); // Redirect to login page if not logged in
+    } else {
+      // Fetch user genres and hero if logged in
+      const fetchUserDetails = async () => {
+        try {
+          console.log(email);
+          const response = await axios.get(`http://localhost:5000/api/users/${email}`);
+          const { user, movies } = response.data; // Adjust according to your backend response structure
+          
+          setUserGenres(user.selectedGenres);
+          setUserHero(user.selectedArtists[0]); // Assuming the hero is the first artist
+          setMovies(movies); // Assuming the movies are already filtered
+        } catch (error) {
+          console.error('Error fetching user details:', error);
+        }
+      };
+
+      fetchUserDetails();
+    }
+  }, [navigate]);
+
+  // Fetch movies from backend API based on search term
   useEffect(() => {
     const fetchMovies = async () => {
       try {
         const response = await axios.get('http://localhost:5000/api/movies/mongodb', {
           params: { search: searchTerm }
         });
-        setMovies(response.data);
+
+        // Assuming movies are already filtered based on user selections
+        setMovies(response.data.movies || []); // Update according to your backend response
       } catch (error) {
         console.error('Error fetching movies:', error);
       }
     };
+    
     fetchMovies();
   }, [searchTerm]);
 
@@ -40,13 +71,15 @@ const HomePage = () => {
               className="movie-card" 
               onClick={() => handleMovieClick(movie.id)} // Add click handler
             >
-              <img src={movie.image || 'default-poster.png'} alt={movie.title} className="movie-poster"/>
+              <img src={movie.image || 'default-poster.png'} alt={movie.title} className="movie-poster" />
               <div className="movie-details">
                 <h2>{movie.title}</h2>
-                <p><strong>Year:</strong> {movie.year}</p>
-                <p><strong>Genres:</strong> {movie.genres ? movie.genres.join(', ') : 'None'}</p>
+                <p><strong>Release Date:</strong> {movie.releaseDate || 'Unknown'}</p>
+                <p><strong>Genres:</strong> {movie.genres.length ? movie.genres.join(', ') : 'None'}</p>
                 <p><strong>Hero:</strong> {movie.hero || 'None'}</p>
                 <p><strong>Heroine:</strong> {movie.heroine || 'None'}</p>
+                <p><strong>IMDB Rating:</strong> {movie.imdbRating || 'N/A'}</p>
+                <p><strong>Duration:</strong> {movie.duration || 'N/A'}</p>
               </div>
             </div>
           ))
