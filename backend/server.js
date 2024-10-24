@@ -6,6 +6,7 @@ const cron = require('node-cron');
 
 const app = express();
 app.use(cors());
+app.use(express.json()); // Middleware to parse JSON bodies
 
 // MongoDB connection
 mongoose.connect('mongodb+srv://vibudesh:040705@cluster0.bojv6ut.mongodb.net/Movie', {
@@ -15,52 +16,171 @@ mongoose.connect('mongodb+srv://vibudesh:040705@cluster0.bojv6ut.mongodb.net/Mov
   .then(() => console.log('MongoDB connected'))
   .catch((err) => console.log('MongoDB connection error:', err));
 
-// Use the existing 'movie_details' collection
-const Movie = mongoose.connection.collection('movie');
-app.get('/api/movies/mongodb/:id', async (req, res) => {
-  const { id } = req.params;
+// Define the Movie model without a specific collection for general queries
+const Movie = mongoose.model('Movie', new mongoose.Schema({}), 'movie');
+
+// User Schema and Model
+const userSchema = new mongoose.Schema({
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  selectedLanguages: { type: [String], required: true },
+  selectedArtists: { type: [String], default: [] },
+  selectedGenres: { type: [String], default: [] }
+});
+
+const User = mongoose.model('User', userSchema);
+
+// API Endpoint to save user data
+app.post('/api/users', async (req, res) => {
+  const { email, password, selectedArtists, selectedLanguages, selectedGenres } = req.body;
+  console.log(email, password, selectedLanguages, selectedArtists, selectedGenres);
+  
+  try {
+    const newUser = new User({ 
+      email, 
+      password, 
+      selectedLanguages, 
+      selectedArtists, 
+      selectedGenres 
+    });
+    await newUser.save();
+    res.status(201).send('User saved successfully');
+  } catch (error) {
+    if (error.code === 11000) { // Duplicate key error
+      return res.status(409).send('Email already exists');
+    }
+    res.status(500).send('Error saving user data');
+  }
+});
+
+// API Endpoint to get movies by user email
+app.get('/api/users/:email', async (req, res) => {
+  const email = req.params.email;
 
   try {
-    // Find the movie by ID in the MongoDB collection
-    const movie = await Movie.find({ id: parseInt(id) }).toArray(); // Ensure ID is an integer
+    // Fetch user based on the email
+    const user = await User.findOne({ email });
+    console.log('Fetched user:', user); // Debug log
 
-    if (movie.length === 0) {
-      return res.status(404).json({ message: 'Movie not found' });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
     }
 
-    res.json(movie[0]); // Return the first matching movie
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
+    // User's selected genres, languages, and artists
+    const selectedGenres = user.selectedGenres || [];
+    const selectedLanguages = user.selectedLanguages || [];
+    const selectedArtists = user.selectedArtists || [];
+    
+    console.log('Selected genres:', selectedGenres); // Debug log
+    console.log('Selected languages:', selectedLanguages); // Debug log
+    console.log('Selected artists:', selectedArtists); // Debug log
 
-// Route to fetch movies with search functionality
-app.get('/api/movies/mongodb', async (req, res) => {
-  const { search } = req.query;
-  let query = {};
-
-  // If search term is provided, filter by title, hero, heroine, or genre
-  if (search) {
-    const regex = new RegExp(search, 'i'); // case-insensitive regex
-    query = {
-      $or: [
-        { title: regex },
-        { hero: regex },
-        { heroine: regex },
-        { genres: regex }
-      ]
+    // Map selected languages to their corresponding collections
+    const collections = {
+      Tamil: 'movie_tamils',
+      Telugu: 'movie_telugus',
+      Kannada: 'movie_kannadas',
+      Malayalam: 'movie_malayalams',
+      Hindi: 'movie_hindis'
     };
-  }
 
-  try {
-    const movies = await Movie.find(query).toArray();
-    res.json(movies);
+    // Filter collections to query based on the user's selected languages
+    const collectionsToQuery = selectedLanguages.map(language => collections[language]).filter(Boolean);
+    console.log('Collections to query:', collectionsToQuery); // Debug log
+
+    // If no matching languages are selected, return an error
+    if (collectionsToQuery.length === 0) {
+      return res.status(400).json({ message: 'No movies with the specified language.' });
+    }
+
+    let allMovies = [];
+
+    // Step 1: Query each collection based on the selected languages
+    for (const collectionName of collectionsToQuery) {
+      const movieCollection = mongoose.connection.collection(collectionName); // Access the collection directly
+      
+      // Query the movie collection for matching genres
+      const filteredMovies = await movieCollection.find({
+        genres: { $in: selectedGenres } // Check if genres match
+      }).toArray();
+
+       allMovies = allMovies.concat(filteredMovies);
+         }
+
+    // Step 4: If no movies match the genre, return movies matching only the language
+    if (allMovies.length === 0) {
+        for (const collectionName of collectionsToQuery) {
+        const movieCollection = mongoose.connection.collection(collectionName); // Access the collection directly
+        
+        // Find all movies in the collection (language matched, ignoring genre)
+        const fallbackMovies = await movieCollection.find().toArray();
+          allMovies = allMovies.concat(fallbackMovies);
+      }
+    }
+
+    // Step 5: If no movies were found, return a message
+    if (allMovies.length === 0) {
+      return res.status(400).json({ message: 'No movies found.' });
+    }
+
+    // Return the user details along with the filtered movies
+    res.json({
+      user,
+      movies: allMovies
+    });
+
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error fetching user or movies:', error); // Debug log
+    res.status(500).json({ message: 'Error fetching user or movies' });
   }
 });
 
-// Fetch detailed Tamil movies from TMDb API and insert into MongoDB
+  app.get('/api/movies/:id', async (req, res) => {
+    const id = req.params.id; // Use params to get the ID from the URL
+    console.log('Movie ID:', id); // Log the movie ID for debugging
+  
+    try {
+      // Store collection names in an array
+      const collectionNames = [
+        'movie_tamils',
+        'movie_telugus',
+        'movie_hindis',
+        'movie_malayalams',
+        'movie_kannadas'
+      ];
+  
+      let movieFound = null;
+  
+      // Iterate through the collection names to find the movie
+      for (const collectionName of collectionNames) {
+        const collection = mongoose.connection.collection(collectionName);
+        console.log('Checking collection:', collectionName); // Log the collection being checked
+  
+        // Find the movie in the current collection
+        const movie = await collection.findOne({ id: parseInt(id) }); // Ensure ID is treated as a number
+        console.log('Found movie:', movie); // Log the movie found in the current collection
+  
+        if (movie) {
+          movieFound = movie; // If found, store the movie
+          break; // Exit the loop if the movie is found
+        }
+      }
+  
+      // If the movie was not found in any collection, return a 404 error
+      if (!movieFound) {
+        return res.status(404).json({ message: 'Movie not found' });
+      }
+  
+      // Return the found movie
+      res.json(movieFound);
+    } catch (error) {
+      console.error('Error fetching movie by ID:', error); // Debug log
+      res.status(500).send('Server error');
+    }
+  });
+  
+
+// Fetch detailed movie information from TMDb API and insert into MongoDB
 const fetchMovieDetails = async (movieId) => {
   try {
     const movieDetailResponse = await axios.get(`https://api.themoviedb.org/3/movie/${movieId}`, {
@@ -105,7 +225,7 @@ const fetchIMDBRating = async (imdbId) => {
   try {
     const omdbResponse = await axios.get(`https://www.omdbapi.com/`, {
       params: {
-        apikey: ' 22c192c5', // Replace with your OMDb API key
+        apikey: '22c192c5', // Replace with your OMDb API key
         i: imdbId
       }
     });
@@ -119,7 +239,6 @@ const fetchIMDBRating = async (imdbId) => {
 // Fetch Tamil movies from TMDb API and insert into MongoDB
 const fetchAndInsertMovies = async () => {
   try {
-    // Fetch the movies that were released today from TMDb (Tamil movies only)
     const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
     const tmdbResponse = await axios.get(`https://api.themoviedb.org/3/discover/movie`, {
       params: {
@@ -134,14 +253,13 @@ const fetchAndInsertMovies = async () => {
 
     const bulkOps = [];
 
-    // Fetch detailed movie info for each movie and prepare bulk operations to insert into MongoDB
     for (const movie of movies) {
       const detailedMovie = await fetchMovieDetails(movie.id);
 
       if (detailedMovie) {
         bulkOps.push({
           updateOne: {
-            filter: { id: movie.id }, // Ensure the movie is not duplicated
+            filter: { id: movie.id },
             update: {
               $setOnInsert: detailedMovie
             },
@@ -151,7 +269,6 @@ const fetchAndInsertMovies = async () => {
       }
     }
 
-    // Execute the bulk insert
     if (bulkOps.length > 0) {
       await Movie.bulkWrite(bulkOps);
       console.log('Tamil movies with details inserted into MongoDB successfully');
@@ -163,10 +280,12 @@ const fetchAndInsertMovies = async () => {
 
 // Schedule the job to run at 8 AM every day
 cron.schedule('0 8 * * *', async () => {
-  console.log('Running scheduled job to fetch and insert Tamil movies with details...');
+  console.log('Running scheduled movie fetch and insert job...');
   await fetchAndInsertMovies();
 });
 
 // Start the server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
