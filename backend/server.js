@@ -52,6 +52,21 @@ app.post('/api/users', async (req, res) => {
     res.status(500).send('Error saving user data');
   }
 });
+app.get('/api/analyze', async (req, res) => {
+  const { prompt } = req.query; // Get the prompt from the query parameters
+
+  try {
+    // Send a request to the Python API
+    const response = await axios.get(`http://127.0.0.1:5001/analyze?prompt=${encodeURIComponent(prompt)}`);
+    
+    // Return the result from the Python API
+    res.json(response.data);
+  } catch (error) {
+    console.error('Error calling Python API:', error.message);
+    res.status(500).send('Error processing the prompt');
+  }
+});
+
 
 // API Endpoint to get movies by user email
 app.get('/api/users/:email', async (req, res) => {

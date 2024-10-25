@@ -41,20 +41,34 @@ const HomePage = () => {
   useEffect(() => {
     const fetchMovies = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/movies/mongodb', {
-          params: { search: searchTerm }
+        const response = await axios.get('http://localhost:5000/api/analyze', {
+          params: { prompt: searchTerm } // Sending the searchTerm as a prompt
         });
-
-        // Assuming movies are already filtered based on user selections
-        setMovies(response.data.movies || []); // Update according to your backend response
+  
+        // Assuming the response contains the genre or mood from the Python analysis
+        const analyzedResult = response.data;
+  
+        // Now you can use the analyzedResult to filter movies or perform further actions
+        console.log('Analyzed Result:', analyzedResult);
+  
+        // Fetch movies based on the analyzed genre or mood (if necessary)
+        if (analyzedResult.genre) {
+          const moviesResponse = await axios.get('http://localhost:5000/api/movies/mongodb', {
+            params: { genre: analyzedResult.genre } // Send genre to fetch movies
+          });
+  
+          // Update the state with the fetched movies
+          setMovies(moviesResponse.data.movies || []); // Update according to your backend response
+        }
       } catch (error) {
-        console.error('Error fetching movies:', error);
+        console.error('Error fetching analyzed result or movies:', error);
       }
     };
-    
+  
+    // Call the fetchMovies function
     fetchMovies();
   }, [searchTerm]);
-
+  
   // Function to handle movie card click
   const handleMovieClick = (id) => {
     navigate(`/movie/${id}`); // Navigate to MovieDetails page with the movie id

@@ -30,7 +30,7 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
       <div className="search-bar">
         <input
           type="text"
-          placeholder="Search movies by title, hero, heroine, genre..."
+          placeholder="What's your mood?..."
           value={searchTerm}
           onChange={handleSearch}
         />
