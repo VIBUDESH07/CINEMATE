@@ -22,7 +22,7 @@ const HomePage = () => {
       const fetchUserDetails = async () => {
         try {
           console.log(email);
-          const response = await axios.get(`http://localhost:5000/api/users/${email}`);
+          const response = await axios.get(`http://localhost:5001/api/users/${email}`);
           const { user, movies } = response.data; // Adjust according to your backend response structure
           
           setUserGenres(user.selectedGenres);
@@ -41,20 +41,50 @@ const HomePage = () => {
   useEffect(() => {
     const fetchMovies = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/analyze', {
+        const response = await axios.get('http://localhost:5001/api/analyze', {
           params: { prompt: searchTerm } // Sending the searchTerm as a prompt
         });
   
-        // Assuming the response contains the genre or mood from the Python analysis
+        // Assuming the response contains the genre, mood, and language from the Python analysis
         const analyzedResult = response.data;
-  
-        // Now you can use the analyzedResult to filter movies or perform further actions
         console.log('Analyzed Result:', analyzedResult);
   
-        // Fetch movies based on the analyzed genre or mood (if necessary)
-        if (analyzedResult.genre) {
-          const moviesResponse = await axios.get('http://localhost:5000/api/movies/mongodb', {
-            params: { genre: analyzedResult.genre } // Send genre to fetch movies
+        // Filter out null fields from analyzedResult
+        const filteredResult = Object.fromEntries(
+          Object.entries(analyzedResult).filter(([_, value]) => value !== null)
+        );
+  
+        console.log('Filtered Analyzed Result:', filteredResult);
+  
+        // Prepare parameters for fetching movies
+        const fetchParams = {};
+  
+        // Only add the genre if it exists
+        if (filteredResult.genre) {
+          fetchParams.genre = filteredResult.genre;
+        }
+  
+        // Only add heroes if they are not empty
+        if (filteredResult.heroes && filteredResult.heroes.length > 0) {
+          fetchParams.heroes = filteredResult.heroes;
+        }
+  
+        // Only add heroines if they are not empty
+        if (filteredResult.heroines && filteredResult.heroines.length > 0) {
+          fetchParams.heroines = filteredResult.heroines;
+        }
+  
+        // Only add language if it exists
+        if (filteredResult.language) {
+          fetchParams.language = filteredResult.language; // Add the language term
+        }
+  
+        console.log(fetchParams);
+  
+        // Fetch movies based on the analyzed result
+        if (Object.keys(fetchParams).length > 0) {
+          const moviesResponse = await axios.get('http://localhost:5001/api/movies/mongodb', {
+            params: fetchParams // Send the relevant parameters to fetch movies
           });
   
           // Update the state with the fetched movies

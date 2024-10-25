@@ -57,9 +57,9 @@ app.get('/api/analyze', async (req, res) => {
 
   try {
     // Send a request to the Python API
-    const response = await axios.get(`http://127.0.0.1:5001/analyze?prompt=${encodeURIComponent(prompt)}`);
+    const response = await axios.get(`http://127.0.0.1:5000/analyze?prompt=${encodeURIComponent(prompt)}`);
     
-    // Return the result from the Python API
+    console.log(response.data)
     res.json(response.data);
   } catch (error) {
     console.error('Error calling Python API:', error.message);
@@ -149,6 +149,73 @@ app.get('/api/users/:email', async (req, res) => {
     res.status(500).json({ message: 'Error fetching user or movies' });
   }
 });
+app.get('/api/movies/mongodb', async (req, res) => {
+  const { genre, heroes, heroines, language } = req.query; // Get the query parameters from the request
+  console.log('Genre:', genre, 'Heroes:', heroes, 'Heroines:', heroines, 'Language:', language);
+  try {
+    // Define an object mapping languages to collection names
+    const collectionsMap = {
+      tamil: 'movie_tamils',
+      telugu: 'movie_telugus',
+      hindi: 'movie_hindis',
+      malayalam: 'movie_malayalams',
+      kannada: 'movie_kannadas'
+    };
+
+    let collectionsToSearch = []; // Initialize an array for collections to search
+
+    // Check if a language is provided
+    if (language && collectionsMap[language.toLowerCase()]) {
+      // If a valid language is provided, search only that collection
+      collectionsToSearch.push(collectionsMap[language.toLowerCase()]);
+    } else {
+      // Otherwise, search all collections
+      collectionsToSearch = Object.values(collectionsMap);
+    }
+
+    // Initialize an array to hold promises for fetching movies
+    const fetchPromises = collectionsToSearch.map(async (collectionName) => {
+      const movieCollection = mongoose.connection.collection(collectionName);
+      const query = {}; // Initialize the query object for this collection
+
+      // Add genre to query if provided
+      if (genre) {
+        query.genres = { $in: [genre] }; // Match movies by genre
+      }
+
+      // Add heroes to query if provided and not empty
+      if (heroes && heroes.length > 0) {
+        const heroArray = Array.isArray(heroes) ? heroes : [heroes]; // Ensure it's an array
+        query.hero = { $in: heroArray }; // Match movies by hero
+      }
+
+      // Add heroines to query if provided and not empty
+      if (heroines && heroines.length > 0) {
+        const heroineArray = Array.isArray(heroines) ? heroines : [heroines]; // Ensure it's an array
+        query.heroine = { $in: heroineArray }; // Match movies by heroine
+      }
+
+      // Fetch movies from the current collection
+      return await movieCollection.find(query).toArray();
+    });
+
+    // Execute all fetch promises and flatten the results
+    const results = await Promise.all(fetchPromises);
+    const movies = results.flat(); // Flatten the array of results
+
+    // Check if any movies were found
+    if (movies.length === 0) {
+      return res.status(404).json({ message: 'No movies found matching the criteria.' });
+    }
+
+    // Return the found movies
+    res.json({ movies });
+  } catch (error) {
+    console.error('Error fetching movies:', error); // Debug log
+    res.status(500).send('Server error while fetching movies.');
+  }
+});
+
 
   app.get('/api/movies/:id', async (req, res) => {
     const id = req.params.id; // Use params to get the ID from the URL
@@ -300,7 +367,7 @@ cron.schedule('0 8 * * *', async () => {
 });
 
 // Start the server
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

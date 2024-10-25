@@ -5,7 +5,10 @@ app = Flask(__name__)
 
 # Define mappings for languages, genres, emotions, heroes, and heroines
 languages = ["tamil", "hindi", "telugu", "malayalam", "kannada"]
-genres = ["action", "comedy", "drama", "romance", "thriller", "motivation", "family", "crime", "feel good"]
+genres = [
+    "action", "comedy", "drama", "romance", "thriller", 
+    "motivation", "family", "crime", "feel good", "horror"
+]
 
 # Map additional emotions and phrases to genres
 emotion_to_genre = {
@@ -23,8 +26,15 @@ emotion_to_genre = {
     "anxious": "Thriller",
     "adventurous": "Action",
     "nostalgic": "Family",
-    "lonely": "Drama"
+    "lonely": "Drama",
+    "suspenseful": "Thriller",
+    "funny": "Comedy",
+    "mysterious": "Crime",
+    "dark": "Thriller",
+    "chilling": "Horror",
+    "romantic": "Romance",
 }
+
 prompt_to_genre = {
     "feel good movie": "Feel Good",
     "crime movie": "Crime",
@@ -32,18 +42,25 @@ prompt_to_genre = {
     "thriller movie": "Thriller",
     "motivational movie": "Motivation",
     "family movie": "Family",
+    "horror movie": "Horror",
+    "action movie": "Action",
+    "comedy movie": "Comedy",
+    "adventure movie": "Action",
+    "mystery movie": "Crime",
 }
 
 # Expanded list of heroes and heroines
 heroes = [
-    "Rajinikanth", "Kamal Haasan", "Vijay", "Ajith Kumar", "Suriya", "Dhanush", 
-    "Vikram", "Mahesh Babu", "Allu Arjun", "Ram Charan", "Shah Rukh Khan", 
-    "Salman Khan", "Aamir Khan", "Ranveer Singh", "Akshay Kumar", "Prabhas", "Yash"
+    "Rajinikanth", "Kamal Haasan", "Vijay", "Ajith Kumar", "Suriya", 
+    "Dhanush", "Vikram", "Mahesh Babu", "Allu Arjun", "Ram Charan", 
+    "Shah Rukh Khan", "Salman Khan", "Aamir Khan", "Ranveer Singh", 
+    "Akshay Kumar", "Prabhas", "Yash"
 ]
 heroines = [
-    "Sridevi", "Simran", "Nayanthara", "Jyothika", "Samantha", "Rashmika Mandanna",
-    "Shruti Haasan", "Anushka Shetty", "Deepika Padukone", "Katrina Kaif", 
-    "Priyanka Chopra", "Alia Bhatt", "Kangana Ranaut", "Kareena Kapoor"
+    "Sridevi", "Simran", "Nayanthara", "Jyothika", "Samantha", 
+    "Rashmika Mandanna", "Shruti Haasan", "Anushka Shetty", 
+    "Deepika Padukone", "Katrina Kaif", "Priyanka Chopra", 
+    "Alia Bhatt", "Kangana Ranaut", "Kareena Kapoor"
 ]
 
 # Function to analyze input prompt and return details

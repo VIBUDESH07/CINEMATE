@@ -68,7 +68,7 @@ const LanguageAndArtists = ({ email, password }) => {
     e.preventDefault();
 
     try {
-      const response = await axios.post('http://localhost:5000/api/users', {
+      const response = await axios.post('http://localhost:5001/api/users', {
         email,
         password,
         selectedLanguages,
