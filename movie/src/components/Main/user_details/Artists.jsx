@@ -80,7 +80,7 @@ const LanguageAndArtists = ({ email, password }) => {
         setSuccess('User registered successfully!');
         setError(null);
         resetSelections();
-        navigate('/login');
+        navigate('/');
       }
     } catch (err) {
       setError('Error registering user: ' + (err.response?.data || err.message));
