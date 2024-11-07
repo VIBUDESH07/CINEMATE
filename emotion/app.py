@@ -157,6 +157,9 @@ def index():
 
     # Handle GET request and return a simple message or 404 for unsupported methods
     return "Send a POST request with JSON data", 404
+@app.route('/')
+def home():
+    return 'Welcome to the app!'
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)
