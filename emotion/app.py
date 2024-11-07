@@ -142,7 +142,7 @@ def analyze_prompt(prompt):
 # Initialize Flask app
 app = Flask(__name__)
 CORS(app) 
-@app.route("/", methods=["GET", "POST"])
+@app.route("/analyze", methods=["POST"])
 def index():
     if request.method == "POST":
         # Check if the request is JSON
