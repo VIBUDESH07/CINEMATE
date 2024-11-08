@@ -3,17 +3,18 @@ import axios from 'axios';
 import { Navigate, useNavigate } from 'react-router-dom';
 const Recent= () => {
   const [recentMovies, setRecentMovies] = useState([]);
-  const email = localStorage.getItem('email');
+  const email = localStorage.getItem('username');
   const navigate=useNavigate();
   useEffect(() => {
     const fetchRecentSearches = async () => {
       try {
-        const response = await axios.get(`http://localhost:5001/api/users/${email}/rec`);
+        console.log(email)
+        const response = await axios.get(`https://movie-recommendation-web-2.onrender.com/api/users/${email}/rec`);
         const movieIds = response.data.recentSearches;
         
         const movies = [];
         for (const movieId of movieIds) {
-          const movie = await axios.get(`http://localhost:5001/api/movies/${movieId}`);
+          const movie = await axios.get(`https://movie-recommendation-web-2.onrender.com/api/movies/${movieId}`);
           if (movie.data) {
             movies.push(movie.data);
           }

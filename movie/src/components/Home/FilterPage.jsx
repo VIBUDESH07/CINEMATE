@@ -22,7 +22,7 @@ const FeedbackPage = () => {
       };
 
       // Send feedback to the backend
-      const response = await axios.post('http://localhost:5001/api/feedback', feedbackData);
+      const response = await axios.post('https://movie-recommendation-web-2.onrender.com/api/feedback', feedbackData);
 
       console.log('Feedback sent successfully:', response.data);
       alert('Feedback submitted successfully!');

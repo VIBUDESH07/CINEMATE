@@ -23,7 +23,7 @@ const HomePage = () => {
       const fetchUserDetails = async () => {
         try {
           console.log(email);
-          const response = await axios.get(`http://localhost:5001/api/users/${email}`);
+          const response = await axios.get(`https://movie-recommendation-web-2.onrender.com/api/users/${email}`);
           const { user, movies } = response.data; // Adjust according to your backend response structure
           
           setUserGenres(user.selectedGenres);
@@ -43,7 +43,7 @@ const HomePage = () => {
     const fetchMovies = async () => {
       if(searchTerm){
       try {
-        const response = await axios.get('http://localhost:5001/api/analyze', {
+        const response = await axios.get('https://movie-recommendation-web-2.onrender.com/api/analyze', {
           params: { prompt: searchTerm } // Sending the searchTerm as a prompt
         });
   
@@ -86,7 +86,7 @@ const HomePage = () => {
         // Fetch movies based on the analyzed result
        
           if (Object.keys(fetchParams).length > 0) {
-            const moviesResponse = await axios.post('http://localhost:5001/api', fetchParams);
+            const moviesResponse = await axios.post('https://movie-recommendation-web-2.onrender.com/api', fetchParams);
         
             // Update the state with the fetched movies
             setMovies(moviesResponse.data.movies || []); // Update according to your backend response

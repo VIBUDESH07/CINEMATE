@@ -22,7 +22,7 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
   // Fetch user details from API
   const fetchUserDetails = async (email) => {
     try {
-      const response = await fetch(`http://localhost:5001/api/${email}`);
+      const response = await fetch(`https://movie-recommendation-web-2.onrender.com/api/${email}`);
 
       if (response.ok) {
         const data = await response.json();
@@ -60,11 +60,11 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
 
     // Select the appropriate API endpoint based on the type (genres, languages, artists)
     if (type === 'genres') {
-      apiUrl = `http://localhost:5001/api/user/genres/${email}`;
+      apiUrl = `https://movie-recommendation-web-2.onrender.com/api/user/genres/${email}`;
     } else if (type === 'languages') {
-      apiUrl = `http://localhost:5001/api/user/languages/${email}`;
+      apiUrl = `https://movie-recommendation-web-2.onrender.com/api/user/languages/${email}`;
     } else if (type === 'artists') {
-      apiUrl = `http://localhost:5001/api/user/artists/${email}`;
+      apiUrl = `https://movie-recommendation-web-2.onrender.com/api/user/artists/${email}`;
     }
 
     try {
