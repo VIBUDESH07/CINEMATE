@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const axios = require('axios');
 const cron = require('node-cron');
 const nodemailer = require('nodemailer');
+const { INTEGER } = require('sequelize');
 const app = express();
 app.use(cors());
 app.use(express.json()); // Middleware to parse JSON bodies
@@ -31,7 +32,8 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
   selectedLanguages: { type: [String], required: true },
   selectedArtists: { type: [String], default: [] },
-  selectedGenres: { type: [String], default: [] }
+  selectedGenres: { type: [String], default: [] },
+  recentSearches : { type: [Number], default: [] }
 });
 
 const User = mongoose.model('User', userSchema);
@@ -39,8 +41,7 @@ const User = mongoose.model('User', userSchema);
 // API Endpoint to save user data
 app.post('/api/users', async (req, res) => {
   const { email, password, selectedArtists, selectedLanguages, selectedGenres } = req.body;
-  console.log(email, password, selectedLanguages, selectedArtists, selectedGenres);
-  
+
   try {
     const newUser = new User({ 
       email, 
@@ -58,6 +59,54 @@ app.post('/api/users', async (req, res) => {
     res.status(500).send('Error saving user data');
   }
 });
+app.get('/api/users/:email/rec', async (req, res) => {
+  const { email } = req.params;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    res.status(200).json({ recentSearches: user.recentSearches });
+  } catch (error) {
+    console.error('Error fetching recent searches:', error);
+    res.status(500).json({ message: 'Error fetching recent searches' });
+  }
+});
+
+app.post('/api/users/:email/recent-search', async (req, res) => {
+  const { email } = req.params;
+  const { movieId } = req.body;
+  
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // Check if movieId already exists in recentSearches
+    const movieIndex = user.recentSearches.indexOf(movieId);
+
+    if (movieIndex !== -1) {
+      // If movieId exists, remove it from its current position
+      user.recentSearches.splice(movieIndex, 1);
+    }
+
+    // Add movieId to the front of the array
+    user.recentSearches.unshift(movieId);
+
+    // Trim the array to only keep the 4 most recent searches
+    user.recentSearches = user.recentSearches.slice(0, 4);
+
+    // Save the updated user document
+    await user.save();
+
+    res.status(200).json({ message: 'Recent search updated', recentSearches: user.recentSearches });
+  } catch (error) {
+    console.error('Error updating recent search:', error);
+    res.status(500).json({ message: 'Error updating recent search' });
+  }
+});
+
+
 app.post('/api/feedback', async (req, res) => {
   const { email, feedback} = req.body;
 
@@ -149,7 +198,6 @@ app.get('/api/analyze', async (req, res) => {
       prompt: prompt
     });
 
-    console.log(response.data);
     res.json(response.data);
   } catch (error) {
     console.error('Error calling Python API:', error.message);
@@ -164,8 +212,7 @@ app.get('/api/users/:email', async (req, res) => {
   try {
     // Fetch user based on the email
     const user = await User.findOne({ email });
-    console.log('Fetched user:', user); // Debug log
-
+  
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -174,10 +221,6 @@ app.get('/api/users/:email', async (req, res) => {
     const selectedGenres = user.selectedGenres || [];
     const selectedLanguages = user.selectedLanguages || [];
     const selectedArtists = user.selectedArtists || [];
-    
-    console.log('Selected genres:', selectedGenres); // Debug log
-    console.log('Selected languages:', selectedLanguages); // Debug log
-    console.log('Selected artists:', selectedArtists); // Debug log
 
     // Map selected languages to their corresponding collections
     const collections = {
@@ -240,7 +283,7 @@ app.get('/api/users/:email', async (req, res) => {
 });
 app.get('/api/:email', async (req, res) => {
   const email = req.params.email;
-  console.log(email)
+
   try {
     // Fetch user based on the email
     const user = await User.findOne({ email });
@@ -256,7 +299,7 @@ app.get('/api/:email', async (req, res) => {
       selectedLanguages: user.selectedLanguages || [],
       selectedArtists: user.selectedArtists || []
     };
-    console.log(userDetails)
+  
     // Return the user's details
     res.json(userDetails);
 
@@ -268,8 +311,6 @@ app.get('/api/:email', async (req, res) => {
 
 app.post('/api', async (req, res) => {
   const { genre = [], heroes = [], heroines = [], language } = req.body || {};
-
-  console.log('Received request with:', 'Genre:', genre, 'Heroes:', heroes, 'Heroines:', heroines, 'Language:', language);
 
   try {
     // Step 1: Map languages to MongoDB collection names
@@ -288,8 +329,6 @@ app.post('/api', async (req, res) => {
     } else {
       collectionsToSearch = Object.values(collectionsMap);
     }
-
-    console.log('Collections to search:', collectionsToSearch); // Log collections being searched
 
     // Step 3: Build the query based on request parameters
     const query = {};
@@ -320,7 +359,6 @@ app.post('/api', async (req, res) => {
 
       // Fetch matching movies
       try {
-        console.log(`Fetching movies from collection: ${collectionName} with query:`, query);
         return await movieCollection.find(query).toArray();
       } catch (err) {
         console.error(`Error fetching movies from ${collectionName}:`, err);
@@ -336,10 +374,8 @@ app.post('/api', async (req, res) => {
 
     // Step 6: If no movies found, return 404
     if (movies.length === 0) {
-      console.log('No movies found matching the criteria.');
       return res.status(404).json({ message: 'No movies found matching the criteria.' });
     }
-    console.log('fetched')
     
     return res.json({ movies });
 
@@ -351,8 +387,7 @@ app.post('/api', async (req, res) => {
 
   app.get('/api/movies/:id', async (req, res) => {
     const id = req.params.id; // Use params to get the ID from the URL
-    console.log('Movie ID:', id); // Log the movie ID for debugging
-  
+   
     try {
       // Store collection names in an array
       const collectionNames = [
@@ -368,12 +403,10 @@ app.post('/api', async (req, res) => {
       // Iterate through the collection names to find the movie
       for (const collectionName of collectionNames) {
         const collection = mongoose.connection.collection(collectionName);
-        console.log('Checking collection:', collectionName); // Log the collection being checked
-  
+    
         // Find the movie in the current collection
         const movie = await collection.findOne({ id: parseInt(id) }); // Ensure ID is treated as a number
-        console.log('Found movie:', movie); // Log the movie found in the current collection
-  
+    
         if (movie) {
           movieFound = movie; // If found, store the movie
           break; // Exit the loop if the movie is found
@@ -485,8 +518,7 @@ const fetchAndInsertMovies = async () => {
 
     if (bulkOps.length > 0) {
       await Movie.bulkWrite(bulkOps);
-      console.log('Tamil movies with details inserted into MongoDB successfully');
-    }
+     }
   } catch (error) {
     console.error('Error fetching or inserting movies:', error.message);
   }
@@ -494,8 +526,7 @@ const fetchAndInsertMovies = async () => {
 
 // Schedule the job to run at 8 AM every day
 cron.schedule('0 8 * * *', async () => {
-  console.log('Running scheduled movie fetch and insert job...');
-  await fetchAndInsertMovies();
+   await fetchAndInsertMovies();
 });
 
 // Start the server
