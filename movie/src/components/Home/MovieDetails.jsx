@@ -37,6 +37,19 @@ const MovieDetails = () => {
 
     fetchMovieDetails();
   }, [id]);
+  useEffect(() => {
+    const addRecentSearch = async () => {
+      try {
+        const email = localStorage.getItem('username');
+        await axios.post(`http://localhost:5001/api/users/${email}/recent-search`, { movieId: id });
+      } catch (error) {
+        console.error('Error updating recent searches:', error);
+      }
+    };
+  
+    addRecentSearch();
+  }, [id]);
+  
 
   if (!movie) return <p>Loading...</p>;
 
