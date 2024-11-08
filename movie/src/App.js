@@ -8,6 +8,7 @@ import MoviesPage from './components/Home/MoviesPage.jsx';
 import Artists from './components/Main/user_details/Artists';
 import About1 from './components/Foot/About.jsx';
 import ProtectedRoute from './components/ProtectedRoute'; // Import ProtectedRoute component
+import Recent from './components/Foot/Recent.jsx';
 
 const App = () => {
   return (
@@ -27,6 +28,7 @@ const App = () => {
             <MovieDetails />
           </ProtectedRoute>
         } />
+      
         <Route path="/filter" element={
           <ProtectedRoute>
             <FilterPage />
