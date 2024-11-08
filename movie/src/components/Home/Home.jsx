@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate for navigation
 import Navbar from './Navbar'; // Import the Navbar component
 import './styles/HomePage.css'; // Custom styling for the homepage
+import Recent from '../Foot/Recent';
 
 const HomePage = () => {
   const [movies, setMovies] = useState([]);
@@ -109,7 +110,10 @@ const HomePage = () => {
   return (
     <div className="homepage">
       <Navbar searchTerm={searchTerm} setSearchTerm={setSearchTerm} /> {/* Navbar with search */}
-      <section className="movies-list">
+      <div className='div-rec'><Recent/>
+      </div>
+            
+        <section className="movies-list">
         {movies.length ? (
           movies.map((movie) => (
             <div 
