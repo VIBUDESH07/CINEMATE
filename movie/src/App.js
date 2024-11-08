@@ -5,22 +5,48 @@ import MovieDetails from './components/Home/MovieDetails.jsx';
 import LoginSignup from './components/Home/Login.jsx';
 import FilterPage from './components/Home/FilterPage.jsx';
 import MoviesPage from './components/Home/MoviesPage.jsx';
-import Artists from './components/Main/user_details/Artists'; // Import Artists component
+import Artists from './components/Main/user_details/Artists';
+import About1 from './components/Foot/About.jsx';
+import ProtectedRoute from './components/ProtectedRoute'; // Import ProtectedRoute component
 
 const App = () => {
   return (
-    
+
       <Routes>
-        {/* Define your routes here */}
-        <Route path="/" element={<HomePage />} />
+        {/* Public Route */}
         <Route path="/login" element={<LoginSignup />} />
-        <Route path="/movie/:id" element={<MovieDetails />} />
-        <Route path="/filter" element={<FilterPage />} />
-        <Route path="/movies" element={<MoviesPage />} />
-       
-        <Route path="/artists" element={<Artists />} /> {/* Artists route */}
+        
+        {/* Protected Routes */}
+        <Route path="/" element={
+          <ProtectedRoute>
+            <HomePage />
+          </ProtectedRoute>
+        } />
+        <Route path="/movie/:id" element={
+          <ProtectedRoute>
+            <MovieDetails />
+          </ProtectedRoute>
+        } />
+        <Route path="/filter" element={
+          <ProtectedRoute>
+            <FilterPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/movies" element={
+          <ProtectedRoute>
+            <MoviesPage />
+          </ProtectedRoute>
+        } />
+        <Route path="/artists" element={
+          <ProtectedRoute>
+            <Artists />
+          </ProtectedRoute>
+        } />
+
+        {/* Public Route */}
+        <Route path="/about" element={<About1 />} />
       </Routes>
-    
+ 
   );
 };
 

@@ -1,4 +1,119 @@
-.navbar { /* Changed from .navba to .navbar */
+/* Basic Navbar styles */
+.navbar {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: #000;
+  color: white;
+}
+
+/* Sidebar Toggle Button */
+.sidebar-toggle {
+  font-size: 30px;
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+}
+
+/* Logo */
+.logo a {
+  color: white;
+  text-decoration: none;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+/* Search Bar */
+.search-bar input {
+  padding: 10px;
+  width: 300px;
+  border: none;
+  border-radius: 5px;
+  outline: none;
+}
+
+/* Navbar links */
+.nav-links {
+  display: flex;
+  list-style: none;
+}
+
+.nav-links li {
+  margin: 0 15px;
+}
+
+.nav-links a {
+  color: white;
+  text-decoration: none;
+}
+
+/* Logout Button */
+.logout-button, .login-button {
+  padding: 10px 20px;
+  background-color: #ff6347;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.logout-button:hover, .login-button:hover {
+  background-color: #e53e34;
+}
+
+/* Sidebar Styles */
+.sidebar {
+  position: fixed;
+  top: 0;
+  right: -250px; /* Initially hidden off the screen */
+  width: 250px;
+  height: 100%;
+  background-color: #111;
+  color: white;
+  padding: 20px;
+  transition: right 0.3s ease; /* Animate sliding in and out */
+  z-index: 999;
+}
+
+/* Sidebar Content */
+.sidebar .close-button {
+  font-size: 30px;
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  margin-bottom: 20px;
+}
+
+.sidebar h3 {
+  margin-top: 0;
+}
+
+.user-details p {
+  margin: 10px 0;
+}
+
+.edit-icon {
+  font-size: 20px;
+  cursor: pointer;
+  margin-left: 10px;
+  color: #ff6347;
+}
+
+.edit-icon:hover {
+  color: #e53e34;
+}
+
+/* Active Sidebar (when it's open) */
+.sidebar.open {
+  right: 0; /* Slide the sidebar into view */
+}
+/* Navbar styling */
+.navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -49,13 +164,13 @@
 }
 
 .nav-links li a:hover {
-  color: #ff6347; /* Highlight effect on hover */
+  color: #ff6347;
 }
 
 /* Login Button */
 .login-button {
   padding: 0.5rem 1rem;
-  background-color: #61dafb; /* Light blue background */
+  background-color: #61dafb;
   color: black;
   border: none;
   border-radius: 4px;
@@ -64,30 +179,209 @@
 }
 
 .login-button:hover {
-  background-color: #21a1f1; /* Darker blue on hover */
+  background-color: #21a1f1;
 }
+
+/* Sidebar styling */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 250px;
+  height: 100%;
+  background-color: #333;
+  color: white;
+  padding: 20px;
+  z-index: 1001;
+}
+
+.sidebar h3 {
+  margin-top: 0;
+  color: #ff6347;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar ul li {
+  margin: 15px 0;
+}
+
+.sidebar ul li a {
+  color: white;
+  text-decoration: none;
+  font-size: 1.1em;
+}
+
+.sidebar ul li a:hover {
+  color: #61dafb;
+}
+
+/* Sidebar Close Button */
+.close-button {
+  background: none;
+  color: white;
+  border: none;
+  font-size: 1.5em;
+  cursor: pointer;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+.close-button:hover {
+  color: #ff6347;
+}
+
+/* Sidebar Toggle Button */
+.sidebar-toggle {
+  background-color: #333;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  cursor: pointer;
+  font-size: 1.2em;
+}
+
+.sidebar-toggle:hover {
+  background-color: #555;
+}
+.user-details {
+  margin-top: 20px;
+  color: #61dafb;
+}
+
+.user-details h4 {
+  margin: 0;
+}
+
+.user-details p {
+  margin: 5px 0;
+}
+/* Sidebar Styles */
+/* Add these to your Navbar.css or styles.css */
+.sidebar {
+  display: none; /* Initially hide the sidebar */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 250px;
+  height: 100%;
+  background-color: #333;
+  color: white;
+  padding: 20px;
+  z-index: 1000;
+}
+
+.sidebar.open {
+  display: block; /* Show the sidebar when 'open' class is added */
+}
+
+.sidebar-toggle {
+  font-size: 30px;
+  background-color: transparent;
+  border: none;
+  color: white;
+  cursor: pointer;
+}
+
+.close-button {
+  font-size: 30px;
+  background-color: transparent;
+  border: none;
+  color: white;
+  cursor: pointer;
+}
+/* User Details Section in Sidebar */
+.user-details {
+  margin-top: 20px;
+  color: #fff; /* White text for user details */
+  padding: 15px;
+  background-color: #444; /* Slightly darker background to differentiate */
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Heading in User Details */
+.user-details h4 {
+  margin-bottom: 10px;
+  font-size: 1.2em;
+  color: #ff6347; /* Bright color for welcome text */
+}
+
+/* Paragraphs in User Details */
+.user-details p {
+  margin: 5px 0;
+  font-size: 1em;
+  color: #ddd; /* Light grey text for general details */
+}
+
+/* Genre section styling */
+.user-details .genres, .user-details .languages {
+  color: #61dafb; /* Light blue for the genres and languages */
+  font-weight: bold;
+}
+
+/* Edit Icon (pencil) */
+.edit-icon {
+  font-size: 1.2em;
+  cursor: pointer;
+  margin-left: 10px;
+  color: #ff6347; /* Same color as the heading */
+  transition: color 0.3s;
+}
+
+.edit-icon:hover {
+  color: #e53e34; /* Darker red on hover */
+}
+
+/* Spacing between the genres and languages */
+.user-details div {
+  margin-bottom: 15px;
+}
+
+/* Apply different color to answers for genres and languages */
+.user-details .answer {
+  color: #d79f0ffe; /* White for the answers to make it stand out */
+  font-weight: bold;
+  font-size: 1em;
+}
+
+/* Add specific color to Selected Genres and Selected Languages */
+.user-details .genres .answer,
+.user-details .languages .answer {
+  color: #ff6347; /* Red color for genres and languages to stand out */
+}
+
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .navbar { /* Ensure this matches your component */
-      flex-direction: column;
-      padding: 10px;
+  .navbar {
+    flex-direction: column;
+    padding: 10px;
   }
 
   .search-bar {
-      margin: 10px 0;
+    margin: 10px 0;
   }
 
   .nav-links {
-      flex-direction: column;
-      align-items: center;
+    flex-direction: column;
+    align-items: center;
   }
 
   .nav-links li {
-      margin: 10px 0;
+    margin: 10px 0;
   }
 
   .search-bar input {
-      width: 80%;
+    width: 80%;
+  }
+
+  /* Sidebar responsive adjustments */
+  .sidebar {
+    width: 200px;
   }
 }

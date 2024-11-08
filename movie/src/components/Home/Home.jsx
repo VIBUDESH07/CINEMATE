@@ -40,6 +40,7 @@ const HomePage = () => {
   // Fetch movies from backend API based on search term
   useEffect(() => {
     const fetchMovies = async () => {
+      if(searchTerm){
       try {
         const response = await axios.get('http://localhost:5001/api/analyze', {
           params: { prompt: searchTerm } // Sending the searchTerm as a prompt
@@ -60,8 +61,8 @@ const HomePage = () => {
         const fetchParams = {};
   
         // Only add the genre if it exists
-        if (filteredResult.genre) {
-          fetchParams.genre = filteredResult.genre;
+        if (filteredResult.genres) {
+          fetchParams.genre = filteredResult.genres;
         }
   
         // Only add heroes if they are not empty
@@ -82,18 +83,19 @@ const HomePage = () => {
         console.log(fetchParams);
   
         // Fetch movies based on the analyzed result
-        if (Object.keys(fetchParams).length > 0) {
-          const moviesResponse = await axios.get('http://localhost:5001/api/movies/mongodb', {
-            params: fetchParams // Send the relevant parameters to fetch movies
-          });
-  
-          // Update the state with the fetched movies
-          setMovies(moviesResponse.data.movies || []); // Update according to your backend response
+       
+          if (Object.keys(fetchParams).length > 0) {
+            const moviesResponse = await axios.post('http://localhost:5001/api', fetchParams);
+        
+            // Update the state with the fetched movies
+            setMovies(moviesResponse.data.movies || []); // Update according to your backend response
+          }
+        } catch (error) {
+          console.error('Error fetching analyzed result or movies:', error);
         }
-      } catch (error) {
-        console.error('Error fetching analyzed result or movies:', error);
-      }
+        
     };
+  }
   
     // Call the fetchMovies function
     fetchMovies();

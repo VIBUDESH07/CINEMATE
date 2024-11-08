@@ -1,95 +1,57 @@
-import React, { useState } from 'react';
-import axios from 'axios'; // For making API requests
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
-const FilterPage = () => {
-  const navigate = useNavigate();
-  const [selectedTopic, setSelectedTopic] = useState('');
-  const [selectedHero, setSelectedHero] = useState('');
-  const [selectedHeroine, setSelectedHeroine] = useState('');
+const FeedbackPage = () => {
+  const [email, setEmail] = useState('');
+  const [feedbackText, setFeedbackText] = useState('');
 
-  const topics = ['Action', 'Romance', 'Drama', 'Love'];
-  const heroes = ['Vijay', 'Ajith', 'Suriya', 'Dhanush', 'Vikram']; // Tamil heroes
-  const heroines = ['Nayanthara', 'Trisha', 'Kajal Aggarwal', 'Samantha', 'Keerthy Suresh']; // Tamil heroines
+  useEffect(() => {
+    // Retrieve the email (stored as "username") from local storage
+    const storedEmail = localStorage.getItem('username');
+    if (storedEmail) {
+      setEmail(storedEmail);
+    }
+  }, []);
 
-  const handleSearch = async () => {
+  const handleFeedbackSubmit = async () => {
     try {
-      // Prepare the query params for the backend request
-      const params = {
-        topic: selectedTopic,
-        hero: selectedHero,
-        heroine: selectedHeroine,
+      // Construct feedback data
+      const feedbackData = {
+        email,
+        feedback: feedbackText,
       };
 
-      // Send a request to the backend with the selected filters
-      const response = await axios.get('/api/movies/filter', { params });
-      console.log(response.data)
-      // Navigate to the MovieList page with the movie data from the backend
-      navigate('/movies', {
-        state: { movies: response.data }, 
-      });
+      // Send feedback to the backend
+      const response = await axios.post('http://localhost:5001/api/feedback', feedbackData);
+
+      console.log('Feedback sent successfully:', response.data);
+      alert('Feedback submitted successfully!');
     } catch (error) {
-      console.error('Error fetching filtered movies:', error);
+      console.error('Error sending feedback:', error);
+      alert('Failed to send feedback');
     }
   };
 
   return (
     <div style={styles.container}>
-      <h2>Filter Movies</h2>
-      
-      {/* Topics */}
-      <div style={styles.filterGroup}>
-        <h3>Topics</h3>
-        {topics.map((topic) => (
-          <div key={topic}>
-            <input
-              type="radio"
-              name="topic"
-              value={topic}
-              checked={selectedTopic === topic}
-              onChange={(e) => setSelectedTopic(e.target.value)}
-            />
-            {topic}
-          </div>
-        ))}
+      <h2>Website Feedback</h2>
+
+      {/* Email Display */}
+      <p><strong>Email:</strong> {email}</p>
+
+      {/* Feedback Textarea */}
+      <div style={styles.inputGroup}>
+        <label>Your Feedback</label>
+        <textarea
+          value={feedbackText}
+          onChange={(e) => setFeedbackText(e.target.value)}
+          style={styles.textArea}
+          placeholder="Share your feedback about the website here..."
+        />
       </div>
 
-      {/* Heroes */}
-      <div style={styles.filterGroup}>
-        <h3>Heroes</h3>
-        {heroes.map((hero) => (
-          <div key={hero}>
-            <input
-              type="radio"
-              name="hero"
-              value={hero}
-              checked={selectedHero === hero}
-              onChange={(e) => setSelectedHero(e.target.value)}
-            />
-            {hero}
-          </div>
-        ))}
-      </div>
-
-      {/* Heroines */}
-      <div style={styles.filterGroup}>
-        <h3>Heroines</h3>
-        {heroines.map((heroine) => (
-          <div key={heroine}>
-            <input
-              type="radio"
-              name="heroine"
-              value={heroine}
-              checked={selectedHeroine === heroine}
-              onChange={(e) => setSelectedHeroine(e.target.value)}
-            />
-            {heroine}
-          </div>
-        ))}
-      </div>
-
-      <button onClick={handleSearch} style={styles.button}>
-        Search
+      <button onClick={handleFeedbackSubmit} style={styles.button}>
+        Submit Feedback
       </button>
     </div>
   );
@@ -101,9 +63,19 @@ const styles = {
     backgroundColor: '#f0f4f8',
     borderRadius: '8px',
     boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+    maxWidth: '500px',
+    margin: '0 auto',
   },
-  filterGroup: {
+  inputGroup: {
     marginBottom: '20px',
+  },
+  textArea: {
+    padding: '10px',
+    width: '100%',
+    height: '100px',
+    borderRadius: '5px',
+    border: '1px solid #ccc',
+    resize: 'none',
   },
   button: {
     padding: '10px 15px',
@@ -116,4 +88,4 @@ const styles = {
   },
 };
 
-export default FilterPage;
+export default FeedbackPage;

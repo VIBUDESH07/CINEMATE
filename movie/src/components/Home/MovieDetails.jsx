@@ -42,9 +42,7 @@ const MovieDetails = () => {
 
   return (
     <div className='bod'>
-      <div className="navbar-brand">
-        <Navbar />
-      </div>
+      
       <div className="movie-details-page">
         <div className="movie-content">
           {/* Movie Poster */}

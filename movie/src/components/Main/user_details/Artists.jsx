@@ -78,6 +78,7 @@ const LanguageAndArtists = ({ email, password }) => {
 
       if (response.status === 201) {
         setSuccess('User registered successfully!');
+        alert("user registered")
         setError(null);
         resetSelections();
         navigate('/');

@@ -3,11 +3,17 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const axios = require('axios');
 const cron = require('node-cron');
-
+const nodemailer = require('nodemailer');
 const app = express();
 app.use(cors());
 app.use(express.json()); // Middleware to parse JSON bodies
-
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'vibudeshrb.22cse@kongu.edu', // Your email
+    pass: 'andx xznk qhsn aagi'         // Your app-specific password
+  }
+});
 // MongoDB connection
 mongoose.connect('mongodb+srv://vibudesh:040705@cluster0.bojv6ut.mongodb.net/Movie', {
   useNewUrlParser: true,
@@ -52,13 +58,94 @@ app.post('/api/users', async (req, res) => {
     res.status(500).send('Error saving user data');
   }
 });
+app.post('/api/feedback', async (req, res) => {
+  const { email, feedback} = req.body;
 
+  try {
+    // Define the email options
+    const mailOptions = {
+      from: 'vibudeshrb.22cse@kongu.edu',
+      to: 'vibudesh0407@gmail.com',  // Destination email
+      subject: 'New Feedback Submission',
+      text: `Feedback from: ${email}\n\nproblem:${feedback}`
+    };
+
+    // Send the email
+    await transporter.sendMail(mailOptions);
+    res.status(200).json({ message: 'Feedback sent successfully!' });
+  } catch (error) {
+    console.error('Error sending feedback:', error);
+    res.status(500).json({ message: 'Failed to send feedback' });
+  }
+});
+
+app.patch('/api/user/genres/:email', async (req, res) => {
+  const { email } = req.params;
+  const { selectedGenres } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.selectedGenres = selectedGenres;
+    await user.save();
+
+    res.json({ message: 'Genres updated successfully', user });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating genres' });
+  }
+});
+
+// API to update selected languages
+app.patch('/api/user/languages/:email', async (req, res) => {
+  const { email } = req.params;
+  const { selectedLanguages } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.selectedLanguages = selectedLanguages;
+    await user.save();
+
+    res.json({ message: 'Languages updated successfully', user });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating languages' });
+  }
+});
+
+// API to update selected artists
+app.patch('/api/user/artists/:email', async (req, res) => {
+  const { email } = req.params;
+  const { selectedArtists } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.selectedArtists = selectedArtists;
+    await user.save();
+
+    res.json({ message: 'Artists updated successfully', user });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating artists' });
+  }
+});
 app.get('/api/analyze', async (req, res) => {
   const { prompt } = req.query; // Get the prompt from the query parameters
 
   try {
     // Send a POST request to the Python API with the prompt in the body
-    const response = await axios.post('http://127.0.0.1:5000/', {
+    const response = await axios.post('https://movie-recommendation-web-1.onrender.com/analyze', {
       prompt: prompt
     });
 
@@ -103,7 +190,7 @@ app.get('/api/users/:email', async (req, res) => {
 
     // Filter collections to query based on the user's selected languages
     const collectionsToQuery = selectedLanguages.map(language => collections[language]).filter(Boolean);
-    console.log('Collections to query:', collectionsToQuery); // Debug log
+  // Debug log
 
     // If no matching languages are selected, return an error
     if (collectionsToQuery.length === 0) {
@@ -151,11 +238,41 @@ app.get('/api/users/:email', async (req, res) => {
     res.status(500).json({ message: 'Error fetching user or movies' });
   }
 });
-app.get('/api/movies/mongodb', async (req, res) => {
-  const { genre, heroes, heroines, language } = req.query; // Get the query parameters from the request
-  console.log('Genre:', genre, 'Heroes:', heroes, 'Heroines:', heroines, 'Language:', language);
+app.get('/api/:email', async (req, res) => {
+  const email = req.params.email;
+  console.log(email)
   try {
-    // Define an object mapping languages to collection names
+    // Fetch user based on the email
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Extract user's selected genres, languages, and artists
+    const userDetails = {
+      email:email,
+      selectedGenres: user.selectedGenres || [],
+      selectedLanguages: user.selectedLanguages || [],
+      selectedArtists: user.selectedArtists || []
+    };
+    console.log(userDetails)
+    // Return the user's details
+    res.json(userDetails);
+
+  } catch (error) {
+    console.error('Error fetching user details:', error);
+    res.status(500).json({ message: 'Error fetching user details' });
+  }
+});
+
+app.post('/api', async (req, res) => {
+  const { genre = [], heroes = [], heroines = [], language } = req.body || {};
+
+  console.log('Received request with:', 'Genre:', genre, 'Heroes:', heroes, 'Heroines:', heroines, 'Language:', language);
+
+  try {
+    // Step 1: Map languages to MongoDB collection names
     const collectionsMap = {
       tamil: 'movie_tamils',
       telugu: 'movie_telugus',
@@ -164,60 +281,73 @@ app.get('/api/movies/mongodb', async (req, res) => {
       kannada: 'movie_kannadas'
     };
 
-    let collectionsToSearch = []; // Initialize an array for collections to search
-
-    // Check if a language is provided
+    // Step 2: Determine which collections to search
+    let collectionsToSearch = [];
     if (language && collectionsMap[language.toLowerCase()]) {
-      // If a valid language is provided, search only that collection
       collectionsToSearch.push(collectionsMap[language.toLowerCase()]);
     } else {
-      // Otherwise, search all collections
       collectionsToSearch = Object.values(collectionsMap);
     }
 
-    // Initialize an array to hold promises for fetching movies
-    const fetchPromises = collectionsToSearch.map(async (collectionName) => {
-      const movieCollection = mongoose.connection.collection(collectionName);
-      const query = {}; // Initialize the query object for this collection
+    console.log('Collections to search:', collectionsToSearch); // Log collections being searched
 
-      // Add genre to query if provided
-      if (genre) {
-        query.genres = { $in: [genre] }; // Match movies by genre
-      }
-
-      // Add heroes to query if provided and not empty
-      if (heroes && heroes.length > 0) {
-        const heroArray = Array.isArray(heroes) ? heroes : [heroes]; // Ensure it's an array
-        query.hero = { $in: heroArray }; // Match movies by hero
-      }
-
-      // Add heroines to query if provided and not empty
-      if (heroines && heroines.length > 0) {
-        const heroineArray = Array.isArray(heroines) ? heroines : [heroines]; // Ensure it's an array
-        query.heroine = { $in: heroineArray }; // Match movies by heroine
-      }
-
-      // Fetch movies from the current collection
-      return await movieCollection.find(query).toArray();
-    });
-
-    // Execute all fetch promises and flatten the results
-    const results = await Promise.all(fetchPromises);
-    const movies = results.flat(); // Flatten the array of results
-
-    // Check if any movies were found
-    if (movies.length === 0) {
-      return res.status(404).json({ message: 'No movies found matching the criteria.' });
+    // Step 3: Build the query based on request parameters
+    const query = {};
+    
+    if (Array.isArray(genre) && genre.length > 0) {
+      // Make genre query case-insensitive using $regex
+      query.genres = { $in: genre.map(g => new RegExp(g, 'i')) };
+    }
+    if (Array.isArray(heroes) && heroes.length > 0) {
+      // Make hero query case-insensitive using $regex
+      query.hero = { $in: heroes.map(h => new RegExp(h, 'i')) };
+    }
+    if (Array.isArray(heroines) && heroines.length > 0) {
+      // Make heroine query case-insensitive using $regex
+      query.heroine = { $in: heroines.map(h => new RegExp(h, 'i')) };
     }
 
-    // Return the found movies
-    res.json({ movies });
+    // Step 4: Fetch movies from each selected collection
+    const fetchPromises = collectionsToSearch.map(async (collectionName) => {
+    
+      const movieCollection = mongoose.connection.collection(collectionName);
+
+      // Check if `movieCollection` is correctly accessed
+      if (!movieCollection) {
+        console.error(`Collection not found: ${collectionName}`);
+        return [];
+      }
+
+      // Fetch matching movies
+      try {
+        console.log(`Fetching movies from collection: ${collectionName} with query:`, query);
+        return await movieCollection.find(query).toArray();
+      } catch (err) {
+        console.error(`Error fetching movies from ${collectionName}:`, err);
+        return [];
+      }
+    });
+
+    // Step 5: Execute all promises and flatten the results
+    const results = await Promise.all(fetchPromises);
+    const movies = results.flat();
+
+    // Log fetched movies
+
+    // Step 6: If no movies found, return 404
+    if (movies.length === 0) {
+      console.log('No movies found matching the criteria.');
+      return res.status(404).json({ message: 'No movies found matching the criteria.' });
+    }
+    console.log('fetched')
+    
+    return res.json({ movies });
+
   } catch (error) {
-    console.error('Error fetching movies:', error); // Debug log
-    res.status(500).send('Server error while fetching movies.');
+    console.error('Error fetching movies:', error);
+    return res.status(500).send('Server error while fetching movies.');
   }
 });
-
 
   app.get('/api/movies/:id', async (req, res) => {
     const id = req.params.id; // Use params to get the ID from the URL
