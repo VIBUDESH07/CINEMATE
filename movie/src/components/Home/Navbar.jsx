@@ -1,29 +1,59 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './styles/Navbar.css';
-import { Navigate } from 'react-router-dom';
+import axios from 'axios';
+import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition'; // Import necessary functions
+import { FaMicrophone } from "react-icons/fa";
+import UserMovie from './UserMovie';
 const Navbar = ({ searchTerm, setSearchTerm }) => {
-  const loc=useNavigate();
+  const loc = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [userDetails, setUserDetails] = useState(null);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [audioSearchTerm, setAudioSearchTerm] = useState('');
+  const [enter,setEnter]=useState(false);
+  
+  // React-speech-recognition hook
+  const {
+    transcript,
+    listening,
+    resetTranscript,
+    browserSupportsSpeechRecognition,
+  } = useSpeechRecognition();
 
-  // Check local storage for login status and username on mount
+
+  const [timeElapsed, setTimeElapsed] = useState(0);
+
+
   useEffect(() => {
     const loggedIn = localStorage.getItem('isLoggedIn') === 'true';
     setIsLoggedIn(loggedIn);
 
     const email = localStorage.getItem('username');
     if (email) {
-      fetchUserDetails(email); // Fetch user details if email is available
+      fetchUserDetails(email);
     }
   }, []);
 
-  // Fetch user details from API
+  useEffect(() => {
+    const fetchAudioSearch = async () => {
+      try {
+        if (audioSearchTerm) {
+          console.log(audioSearchTerm)
+          SpeechRecognition.stopListening();
+          loc(`/mov/${audioSearchTerm}`);
+        }
+      } catch (error) {
+        console.error('Error with audio search:', error);
+      }
+    };
+    fetchAudioSearch();
+  }, [enter]);
+
   const fetchUserDetails = async (email) => {
     try {
       const response = await fetch(`https://movie-recommendation-web-2.onrender.com/api/${email}`);
-
       if (response.ok) {
         const data = await response.json();
         setUserDetails(data);
@@ -35,7 +65,6 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
     }
   };
 
-  // Function to handle logout
   const handleLogout = () => {
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('username');
@@ -43,22 +72,22 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
     loc('/login');
   };
 
-  // Function to handle search input change
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
   };
 
-  // Function to toggle the sidebar visibility
+  const handleAudioSearch = (e) => {
+    setAudioSearchTerm(e.target.value);
+  };
+
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
-  // Function to update user details via API
   const updateUserDetails = async (type, updatedFields) => {
-    const email = localStorage.getItem('username'); // Get email from localStorage
+    const email = localStorage.getItem('username');
     let apiUrl = '';
 
-    // Select the appropriate API endpoint based on the type (genres, languages, artists)
     if (type === 'genres') {
       apiUrl = `https://movie-recommendation-web-2.onrender.com/api/user/genres/${email}`;
     } else if (type === 'languages') {
@@ -73,12 +102,12 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ [`selected${type.charAt(0).toUpperCase() + type.slice(1)}`]: updatedFields }),
+        body: JSON.stringify({ [`selected${type.charAt(0).toUpperCase() + type.slice(1)}`]: updatedFields } ),
       });
 
       if (response.ok) {
         const data = await response.json();
-        setUserDetails(data.user); // Update user details after successful update
+        setUserDetails(data.user);
         console.log(`${type.charAt(0).toUpperCase() + type.slice(1)} updated successfully:`, data);
       } else {
         console.error(`Failed to update ${type}`);
@@ -88,8 +117,8 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
     }
   };
 
-  // Handle edit functions for each field (genre, language, artist)
   const handleEditGenres = () => {
+    if (!userDetails) return;
     const newGenres = prompt('Enter new genres (comma separated):', userDetails.selectedGenres.join(', '));
     if (newGenres !== null) {
       updateUserDetails('genres', newGenres.split(',').map(item => item.trim()));
@@ -97,18 +126,31 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
   };
 
   const handleEditLanguages = () => {
+    if (!userDetails) return;
     const newLanguages = prompt('Enter new languages (comma separated):', userDetails.selectedLanguages.join(', '));
     if (newLanguages !== null) {
       updateUserDetails('languages', newLanguages.split(',').map(item => item.trim()));
     }
   };
 
-  const handleEditArtists = () => {
-    const newArtists = prompt('Enter new artists (comma separated):', userDetails.selectedArtists.join(', '));
-    if (newArtists !== null) {
-      updateUserDetails('artists', newArtists.split(',').map(item => item.trim()));
+
+  const handleKeyPress = (event) => {
+    if (event.key === 'Enter') {
+      setEnter(event.target.value);
     }
   };
+  // Update the audio search term with the transcript
+  useEffect(() => {
+    if (transcript) {
+      console.log(transcript)
+      setAudioSearchTerm(transcript); // Update the audio search term
+    }
+  }, [transcript]);
+
+  // Check if browser supports speech recognition
+  if (!browserSupportsSpeechRecognition) {
+    return <div>Speech recognition is not supported in your browser.</div>;
+  }
 
   return (
     <nav className="navbar">
@@ -123,6 +165,32 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
           value={searchTerm}
           onChange={handleSearch}
         />
+        <div className="voice-search-container">
+          <input
+            type="text"
+            placeholder="Search by voice"
+            value={audioSearchTerm}
+            onKeyPress={handleKeyPress}
+            onChange={handleAudioSearch}
+            className="voice-search-input"
+          />
+          <div className="flex gap-3 items-center">
+        <button
+          className="btn btn-primary btn-sm rounded-full w-16 h-16 flex justify-center items-center"
+          onClick={() => {
+            if (listening) {
+              SpeechRecognition.stopListening();
+            } else {
+              resetTranscript();
+              SpeechRecognition.startListening();
+            }
+          }}
+        >
+          <FaMicrophone className={`text-3xl ${listening ? "text-red-500" : "text-black"}`}  style={{color:"white"}} />
+        </button>
+      </div>
+     
+        </div>
       </div>
       <ul className="nav-links">
         <li><Link to="/">Home</Link></li>
@@ -135,28 +203,22 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
         <Link to="/login" className="login-button">Login</Link>
       )}
 
-      {/* Sidebar */}
       <div className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
         <button onClick={toggleSidebar} className="close-button">✖</button>
         <h3>PROFILE</h3>
 
-        {/* Display user details if available */}
         {userDetails && (
           <div className="user-details">
             <h4>Welcome, {userDetails.name}</h4>
-            <p>Email: <span style={{color:"orange"}}>{userDetails.email}</span></p>
-
-            {/* Display selected genre with edit icon */}
+            <p>Email: <span style={{ color: "orange" }}>{userDetails.email}</span></p>
             <div>
-  <p > Genres: <span className="answer">{userDetails.selectedGenres.join(', ')}</span></p>
-  <span className="edit-icon" onClick={handleEditGenres}>✎</span>
-</div>
-
-{/* Display selected languages with edit icon */}
-<div>
-  <p>Languages: <span className="answer">{userDetails.selectedLanguages.join(', ')}</span></p>
-  <span className="edit-icon" onClick={handleEditLanguages}>✎</span>
-</div>
+              <p>Genres: <span className="answer">{userDetails.selectedGenres.join(', ')}</span></p>
+              <span className="edit-icon" onClick={handleEditGenres}>✎</span>
+            </div>
+            <div>
+              <p>Languages: <span className="answer">{userDetails.selectedLanguages.join(', ')}</span></p>
+              <span className="edit-icon" onClick={handleEditLanguages}>✎</span>
+            </div>
           </div>
         )}
       </div>

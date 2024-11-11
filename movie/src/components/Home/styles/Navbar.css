@@ -323,6 +323,47 @@
   color: #61dafb; /* Light blue for the genres and languages */
   font-weight: bold;
 }
+.voice-search-container {
+  display: flex;
+  margin-left: 1rem;
+  align-items: center;
+  border: 2px solid #ddd;
+  border-radius: 9999px; /* Fully rounded border */
+  overflow: hidden;
+  padding: 8px 12px;
+  max-width: 400px; /* Adjust width as needed */
+}
+
+.voice-search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 1rem;
+  padding: 8px;
+}
+
+.voice-search-container .btn-primary {
+  border: none;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #333;
+  margin-left: 8px;
+}
+
+.voice-search-container .btn-primary:hover {
+  color: #555;
+}
+
+.voice-search-container .text-red-500 {
+  color: #f87171; /* Red color for active microphone state */
+}
+
+.voice-search-container .text-black {
+  color: #000;
+}
 
 /* Edit Icon (pencil) */
 .edit-icon {

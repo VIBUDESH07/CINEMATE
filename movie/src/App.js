@@ -9,6 +9,7 @@ import Artists from './components/Main/user_details/Artists';
 import About1 from './components/Foot/About.jsx';
 import ProtectedRoute from './components/ProtectedRoute'; // Import ProtectedRoute component
 import Recent from './components/Foot/Recent.jsx';
+import UserMovie from './components/Home/UserMovie.jsx';
 
 const App = () => {
   return (
@@ -26,6 +27,11 @@ const App = () => {
         <Route path="/movie/:id" element={
           <ProtectedRoute>
             <MovieDetails />
+          </ProtectedRoute>
+        } />
+           <Route path="/mov/:mail" element={
+          <ProtectedRoute>
+            <UserMovie/>
           </ProtectedRoute>
         } />
       
