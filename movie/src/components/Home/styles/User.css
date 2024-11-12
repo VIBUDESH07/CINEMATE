@@ -1,0 +1,148 @@
+/* MovieDetails.css */
+
+.use-bod {
+    background-color: #121212;
+    color: #ffffff;
+    padding: 20px;
+    min-height: 100vh;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  /* Movie Cards Grid */
+  .use-movie-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    width: 100%;
+    max-width: 1200px;
+    margin-top: 20px;
+  }
+  
+  .use-movie-card {
+    background-color: #1e1e1e;
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  
+  .use-movie-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(255, 255, 255, 0.2);
+  }
+  
+  .use-movie-card img {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 5px;
+  }
+  
+  .use-movie-card h3 {
+    font-size: 18px;
+    color: #e50914;
+    margin: 10px 0 5px;
+  }
+  
+  .use-movie-card p {
+    font-size: 14px;
+    color: #aaaaaa;
+  }
+  
+  /* Movie Details Page */
+  .use-movie-details-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 900px;
+    padding: 20px;
+  }
+  
+  .use-movie-content {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    align-items: flex-start;
+    margin-top: 20px;
+    color: #ffffff;
+  }
+  
+  .use-movie-details-poster {
+    width: 300px;
+    border-radius: 10px;
+  }
+  
+  .use-movie-details-info {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .use-movie-details-info h1 {
+    font-size: 32px;
+    color: #e50914;
+    margin-bottom: 10px;
+  }
+  
+  .use-movie-details-info p {
+    margin: 5px 0;
+  }
+  
+  .use-year, .use-release-date, .use-genres {
+    font-size: 16px;
+    color: #f5f5f5;
+  }
+  
+  /* Star Rating */
+  .use-star-rating {
+    font-size: 20px;
+    color: #FFD700;
+    display: inline-block;
+  }
+  
+  .use-filled-star {
+    color: #FFD700;
+  }
+  
+  .use-empty-star {
+    color: #555;
+  }
+  
+  /* Trailer Section */
+  .use-trailer-section {
+    width: 100%;
+    margin-top: 20px;
+  }
+  
+  .use-trailer-section h2 {
+    font-size: 24px;
+    color: #ffffff;
+    margin-bottom: 10px;
+  }
+  
+  .use-trailer-iframe {
+    width: 100%;
+    height: 400px;
+    border: none;
+  }
+  
+  /* Back Button */
+  .use-button {
+    background-color: #e50914;
+    color: #ffffff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 20px;
+    transition: background-color 0.3s;
+  }
+  
+  .use-button:hover {
+    background-color: #b0060f;
+  }
+  
