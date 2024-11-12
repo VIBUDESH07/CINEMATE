@@ -194,7 +194,7 @@ app.get('/api/analyze', async (req, res) => {
 
   try {
     // Send a POST request to the Python API with the prompt in the body
-    const response = await axios.post('http://localhost:5000/analyze', {
+    const response = await axios.post('https://movie-recommendation-web-1.onrender.com/analyze', {
       prompt: prompt
     });
 
