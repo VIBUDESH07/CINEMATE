@@ -43,10 +43,11 @@ const HomePage = () => {
     const fetchMovies = async () => {
       if(searchTerm){
       try {
+        console.log(searchTerm)
         const response = await axios.get('https://movie-recommendation-web-2.onrender.com/api/analyze', {
           params: { prompt: searchTerm } // Sending the searchTerm as a prompt
         });
-  
+      
         // Assuming the response contains the genre, mood, and language from the Python analysis
         const analyzedResult = response.data;
         console.log('Analyzed Result:', analyzedResult);
